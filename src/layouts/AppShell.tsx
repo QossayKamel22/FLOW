@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
@@ -21,6 +21,7 @@ export function AppShell() {
   const { user, logOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
@@ -64,10 +65,14 @@ export function AppShell() {
               background: isActive
                 ? "linear-gradient(135deg, var(--accent), #7c3aed)"
                 : "transparent",
-              transition: "background var(--transition-fast), color var(--transition-fast)",
+              boxShadow: isActive ? "0 6px 16px -4px rgba(99,102,241,0.5)" : "none",
+              transform: "translateX(0)",
+              transition: "background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast)",
             })}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(3px)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateX(0)")}
           >
-            <span>{item.icon}</span>
+            <span style={{ transition: "transform var(--transition-fast)" }}>{item.icon}</span>
             {item.label}
           </NavLink>
         ))}
@@ -158,7 +163,9 @@ export function AppShell() {
         )}
 
         <main style={{ flex: 1, padding: 24, maxWidth: "100%", overflowX: "hidden" }}>
-          <Outlet />
+          <div key={location.pathname} className="page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
 

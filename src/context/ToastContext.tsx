@@ -57,7 +57,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               fontSize: 13.5,
               color: "var(--text-primary)",
               minWidth: 220,
-              animation: "fadeIn 180ms ease",
+              animation: "slideInRight 240ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {t.message}

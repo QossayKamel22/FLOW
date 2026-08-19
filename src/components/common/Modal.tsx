@@ -40,6 +40,7 @@ export function Modal({ open, onClose, title, children, width = 520 }: ModalProp
           borderRadius: "var(--radius-xl)",
           boxShadow: "var(--shadow-card)",
           padding: 24,
+          animation: "popIn 220ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>

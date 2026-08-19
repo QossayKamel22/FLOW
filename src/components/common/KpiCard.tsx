@@ -50,7 +50,7 @@ export function KpiCard({
           {icon}
         </span>
       </div>
-      <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: -0.5 }}>{value}</div>
+      <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: -0.5, animation: "valuePop 380ms cubic-bezier(0.16, 1, 0.3, 1)", transformOrigin: "left center" }}>{value}</div>
       {trend && <div style={{ fontSize: 12.5, color: "var(--success)", fontWeight: 600 }}>{trend}</div>}
     </Card>
   );

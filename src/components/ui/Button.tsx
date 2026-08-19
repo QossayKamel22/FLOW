@@ -57,14 +57,26 @@ export function Button({
         ...style,
       }}
       onMouseEnter={(e) => {
-        if (variant === "primary") e.currentTarget.style.filter = "brightness(1.1)";
+        if (variant === "primary") {
+          e.currentTarget.style.filter = "brightness(1.1)";
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }
         if (variant === "secondary") e.currentTarget.style.borderColor = "var(--border-strong)";
         if (variant === "ghost") e.currentTarget.style.background = "var(--bg-elevated)";
       }}
       onMouseLeave={(e) => {
-        if (variant === "primary") e.currentTarget.style.filter = "none";
+        if (variant === "primary") {
+          e.currentTarget.style.filter = "none";
+          e.currentTarget.style.transform = "translateY(0)";
+        }
         if (variant === "secondary") e.currentTarget.style.borderColor = "var(--border)";
         if (variant === "ghost") e.currentTarget.style.background = "transparent";
+      }}
+      onMouseDown={(e) => {
+        e.currentTarget.style.transform = "scale(0.97)";
+      }}
+      onMouseUp={(e) => {
+        e.currentTarget.style.transform = variant === "primary" ? "translateY(-1px)" : "scale(1)";
       }}
       {...rest}
     >

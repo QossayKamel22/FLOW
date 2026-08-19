@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "../../components/ui/Card";
 import { SectionHeader } from "../../components/common/States";
 
@@ -25,7 +25,7 @@ interface Message {
   text: string;
 }
 
-function BotOrb({ size = 34 }: { size?: number }) {
+function BotOrb({ size = 34, pulse = false }: { size?: number; pulse?: boolean }) {
   return (
     <div
       style={{
@@ -38,6 +38,7 @@ function BotOrb({ size = 34 }: { size?: number }) {
         alignItems: "center",
         justifyContent: "center",
         boxShadow: "0 4px 16px rgba(99,102,241,0.45)",
+        animation: pulse ? "orbPulse 1.4s ease-in-out infinite" : "orbPulse 3.2s ease-in-out infinite",
       }}
     >
       <img src="/logo.svg" alt="" style={{ width: size * 0.58, height: size * 0.58 }} />
@@ -51,6 +52,11 @@ export function CopilotPage() {
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, typing]);
 
   function send(text: string) {
     if (!text.trim() || typing) return;
@@ -77,10 +83,11 @@ export function CopilotPage() {
       </div>
 
       <div
+        className="animated-gradient-border"
         style={{
           borderRadius: "var(--radius-xl)",
           padding: 1,
-          background: "linear-gradient(135deg, rgba(99,102,241,0.45), rgba(34,211,238,0.25), rgba(139,92,246,0.35))",
+          backgroundImage: "linear-gradient(120deg, rgba(99,102,241,0.5), rgba(34,211,238,0.3), rgba(139,92,246,0.45), rgba(99,102,241,0.5))",
         }}
       >
         <Card
@@ -103,17 +110,26 @@ export function CopilotPage() {
               background: "linear-gradient(180deg, rgba(99,102,241,0.08), transparent)",
             }}
           >
-            <BotOrb size={38} />
+            <BotOrb size={38} pulse={typing} />
             <div>
               <div style={{ fontWeight: 700, fontSize: 14.5 }}>FLOW AI</div>
               <div style={{ fontSize: 12, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", display: "inline-block" }} />
-                Ready to help
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "var(--success)",
+                    display: "inline-block",
+                    animation: "orbPulse 2s ease-in-out infinite",
+                  }}
+                />
+                {typing ? "Thinking…" : "Ready to help"}
               </div>
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }} className="scrollbar-thin">
+          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }} className="scrollbar-thin">
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -123,6 +139,7 @@ export function CopilotPage() {
                   alignSelf: m.role === "user" ? "flex-end" : "flex-start",
                   flexDirection: m.role === "user" ? "row-reverse" : "row",
                   maxWidth: "82%",
+                  animation: "messageIn 320ms cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
                 {m.role === "assistant" && <BotOrb size={28} />}
@@ -142,8 +159,8 @@ export function CopilotPage() {
               </div>
             ))}
             {typing && (
-              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start" }}>
-                <BotOrb size={28} />
+              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start", animation: "messageIn 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
+                <BotOrb size={28} pulse />
                 <div style={{ background: "var(--bg-elevated)", padding: "12px 16px", borderRadius: "var(--radius-lg)", display: "flex", gap: 4, alignItems: "center" }}>
                   {[0, 1, 2].map((i) => (
                     <span
@@ -178,15 +195,18 @@ export function CopilotPage() {
                     color: "var(--text-secondary)",
                     cursor: typing ? "default" : "pointer",
                     opacity: typing ? 0.5 : 1,
-                    transition: "border-color var(--transition-fast), color var(--transition-fast)",
+                    transform: "scale(1)",
+                    transition: "border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast)",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "var(--accent)";
                     e.currentTarget.style.color = "var(--text-primary)";
+                    e.currentTarget.style.transform = "scale(1.05)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = "var(--border)";
                     e.currentTarget.style.color = "var(--text-secondary)";
+                    e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
                   {p}
@@ -240,7 +260,15 @@ export function CopilotPage() {
                   cursor: typing || !input.trim() ? "default" : "pointer",
                   opacity: typing || !input.trim() ? 0.5 : 1,
                   boxShadow: "0 4px 12px rgba(99,102,241,0.35)",
+                  transform: "scale(1)",
+                  transition: "transform var(--transition-fast)",
                 }}
+                onMouseEnter={(e) => {
+                  if (!typing && input.trim()) e.currentTarget.style.transform = "scale(1.08)";
+                }}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
+                onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />

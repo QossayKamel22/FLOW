@@ -45,11 +45,12 @@ export function DashboardPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
             <div
+              className="animated-gradient-border"
               style={{
                 position: "relative",
                 borderRadius: "var(--radius-lg)",
                 padding: 1,
-                background: "linear-gradient(135deg, rgba(99,102,241,0.5), rgba(34,211,238,0.3), rgba(139,92,246,0.4))",
+                backgroundImage: "linear-gradient(120deg, rgba(99,102,241,0.55), rgba(34,211,238,0.35), rgba(139,92,246,0.5), rgba(99,102,241,0.55))",
               }}
             >
               <Card
@@ -72,6 +73,7 @@ export function DashboardPage() {
                         justifyContent: "center",
                         fontSize: 17,
                         boxShadow: "0 4px 14px rgba(99,102,241,0.4)",
+                        animation: "orbPulse 2.4s ease-in-out infinite",
                       }}
                     >
                       ✨
