@@ -4,6 +4,7 @@ import { propertiesService } from "../../services/crmServices";
 import type { Property, PropertyStatus, PropertyType } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
@@ -140,7 +141,7 @@ export function PropertiesPage() {
 
   return (
     <div>
-      <SectionHeader title="Properties" subtitle="Manage listings, leases, and sale contracts." action={<Button onClick={openCreate}>+ New Property</Button>} />
+      <SectionHeader title="Properties" subtitle="Manage listings, leases, and sale contracts." action={<NewButton label="New Property" onClick={openCreate} />} />
 
       {!loading && !error && items.length > 0 && (
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>

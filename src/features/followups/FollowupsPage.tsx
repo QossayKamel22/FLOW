@@ -4,6 +4,7 @@ import { followupsService } from "../../services/crmServices";
 import type { FollowUp } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
 import { SectionHeader, LoadingState, EmptyState, ErrorState } from "../../components/common/States";
@@ -168,7 +169,7 @@ export function FollowupsPage() {
 
   return (
     <div>
-      <SectionHeader title="Follow-ups" subtitle="Stay on top of every commitment." action={<Button onClick={openCreate}>+ New Follow-up</Button>} />
+      <SectionHeader title="Follow-ups" subtitle="Stay on top of every commitment." action={<NewButton label="New Follow-up" onClick={openCreate} />} />
 
       {loading ? (
         <LoadingState />

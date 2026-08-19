@@ -4,6 +4,7 @@ import { dealsService } from "../../services/crmServices";
 import type { Deal, DealStage } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
@@ -79,7 +80,7 @@ export function DealsPage() {
 
   return (
     <div>
-      <SectionHeader title="Deals" subtitle="Your sales pipeline, stage by stage." action={<Button onClick={() => openCreate()}>+ New Deal</Button>} />
+      <SectionHeader title="Deals" subtitle="Your sales pipeline, stage by stage." action={<NewButton label="New Deal" onClick={() => openCreate()} />} />
 
       {loading ? (
         <LoadingState />

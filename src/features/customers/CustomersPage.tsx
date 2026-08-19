@@ -4,6 +4,7 @@ import { customersService } from "../../services/crmServices";
 import type { Customer } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
@@ -92,7 +93,7 @@ export function CustomersPage() {
 
   return (
     <div>
-      <SectionHeader title="Customers" subtitle="Manage your active customer relationships." action={<Button onClick={openCreate}>+ New Customer</Button>} />
+      <SectionHeader title="Customers" subtitle="Manage your active customer relationships." action={<NewButton label="New Customer" onClick={openCreate} />} />
 
       {!loading && !error && items.length > 0 && (
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>

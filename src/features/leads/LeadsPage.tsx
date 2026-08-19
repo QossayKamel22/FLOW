@@ -4,6 +4,7 @@ import { leadsService } from "../../services/crmServices";
 import type { Lead, LeadSource, LeadStatus } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
@@ -117,7 +118,7 @@ export function LeadsPage() {
       <SectionHeader
         title="Leads"
         subtitle="Track and qualify incoming prospects."
-        action={<Button onClick={openCreate}>+ New Lead</Button>}
+        action={<NewButton label="New Lead" onClick={openCreate} />}
       />
 
       {!loading && !error && items.length > 0 && (

@@ -26,15 +26,20 @@ export function KpiCard({
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.22)";
+        const icon = e.currentTarget.querySelector<HTMLElement>("[data-kpi-icon]");
+        if (icon) icon.style.transform = "scale(1.12) rotate(-6deg)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "none";
         e.currentTarget.style.boxShadow = "var(--shadow-card)";
+        const icon = e.currentTarget.querySelector<HTMLElement>("[data-kpi-icon]");
+        if (icon) icon.style.transform = "scale(1) rotate(0deg)";
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{label}</span>
         <span
+          data-kpi-icon
           style={{
             width: 34,
             height: 34,
@@ -45,6 +50,7 @@ export function KpiCard({
             justifyContent: "center",
             fontSize: 15,
             boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
+            transition: "transform var(--transition-base)",
           }}
         >
           {icon}

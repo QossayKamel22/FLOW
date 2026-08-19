@@ -12,6 +12,7 @@ import { SectionHeader, LoadingState, EmptyState } from "../../components/common
 import { StatusBadge } from "../../components/common/Badge";
 import { expiringContracts, daysUntil } from "../../lib/contracts";
 import { Link } from "react-router-dom";
+import { IconClock, IconHome, IconTarget } from "../../components/common/Icons";
 
 const DAY_MS = 86_400_000;
 
@@ -60,8 +61,68 @@ export function DashboardPage() {
     ? Math.round((deals.items.filter((d) => d.stage !== "Lost").length / deals.items.length) * 100)
     : 100;
 
+  const priorityActions = useMemo(() => {
+    type Action = { id: string; icon: typeof IconClock; color: string; title: string; sub: string; href: string };
+    const out: Action[] = [];
+    for (const f of followups.items) {
+      if (f.completed || !f.date) continue;
+      if (new Date(f.date) < new Date(new Date().toDateString())) {
+        out.push({ id: `f-${f.id}`, icon: IconClock, color: "var(--danger)", title: f.title, sub: `Overdue since ${f.date}`, href: "/app/followups" });
+      }
+    }
+    for (const p of contractsDue) {
+      const d = daysUntil(p.contractEnd);
+      out.push({
+        id: `p-${p.id}`,
+        icon: IconHome,
+        color: "var(--warning)",
+        title: p.title || p.address,
+        sub: d !== null && d < 0 ? `Contract expired ${Math.abs(d)}d ago` : `Contract expires in ${d}d`,
+        href: "/app/properties",
+      });
+    }
+    for (const l of leads.items) {
+      if (l.score >= 80 && l.status === "New") {
+        out.push({ id: `l-${l.id}`, icon: IconTarget, color: "var(--accent)", title: l.name, sub: `Hot lead, score ${l.score}, not yet contacted`, href: "/app/leads" });
+      }
+    }
+    return out.slice(0, 4);
+  }, [followups.items, contractsDue, leads.items]);
+
   return (
-    <div>
+    <div style={{ position: "relative" }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: 60,
+          right: 40,
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(99,102,241,0.1), transparent 70%)",
+          filter: "blur(20px)",
+          pointerEvents: "none",
+          zIndex: -1,
+          animation: "dashboardDrift 12s ease-in-out infinite",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          bottom: 40,
+          left: 260,
+          width: 320,
+          height: 320,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(34,211,238,0.08), transparent 70%)",
+          filter: "blur(20px)",
+          pointerEvents: "none",
+          zIndex: -1,
+          animation: "dashboardDrift 15s ease-in-out infinite reverse",
+        }}
+      />
       <SectionHeader title={`Good morning, ${firstName} 👋`} subtitle="Here's what's happening with your sales today." />
 
       {loading ? (
@@ -105,6 +166,68 @@ export function DashboardPage() {
               </div>
             )}
           </div>
+
+          {priorityActions.length > 0 && (
+            <Card style={{ marginBottom: 16, animation: "fadeIn 400ms ease 40ms both" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 15 }}>🚨</span>
+                <h3 style={{ fontWeight: 800, fontSize: 15 }}>Priority actions</h3>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--danger)", background: "rgba(239,68,68,0.12)", padding: "2px 8px", borderRadius: 999 }}>
+                  {priorityActions.length}
+                </span>
+              </div>
+              <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
+                {priorityActions.map((a) => {
+                  const Icon = a.icon;
+                  return (
+                    <Link
+                      key={a.id}
+                      to={a.href}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "10px 12px",
+                        borderRadius: "var(--radius-md)",
+                        background: "var(--bg-elevated)",
+                        textDecoration: "none",
+                        color: "inherit",
+                        transition: "transform var(--transition-fast), background var(--transition-fast)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.background = "var(--bg-card)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "none";
+                        e.currentTarget.style.background = "var(--bg-elevated)";
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 8,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: a.color,
+                          background: `color-mix(in srgb, ${a.color} 15%, transparent)`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Icon size={15} />
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.sub}</div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, animation: "fadeIn 400ms ease 80ms both" }}>
             <div

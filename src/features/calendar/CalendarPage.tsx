@@ -4,6 +4,7 @@ import { activitiesService } from "../../services/crmServices";
 import type { Activity } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { NewButton } from "../../components/ui/NewButton";
 import { Input, Textarea } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
@@ -195,7 +196,7 @@ export function CalendarPage() {
 
   return (
     <div>
-      <SectionHeader title="Calendar" subtitle="Follow-ups, meetings, and deal deadlines." action={<Button onClick={() => openCreate()}>+ New Activity</Button>} />
+      <SectionHeader title="Calendar" subtitle="Follow-ups, meetings, and deal deadlines." action={<NewButton label="New Activity" onClick={() => openCreate()} />} />
 
       {loading ? (
         <LoadingState />
