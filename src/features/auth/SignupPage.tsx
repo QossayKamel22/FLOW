@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
+import { ProviderButtons } from "./ProviderButtons";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -56,6 +57,7 @@ export function SignupPage() {
           Create account
         </Button>
       </form>
+      <ProviderButtons onError={setError} />
       <p style={{ textAlign: "center", fontSize: 13.5, color: "var(--text-secondary)", marginTop: 20 }}>
         Already have an account? <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600 }}>Sign in</Link>
       </p>

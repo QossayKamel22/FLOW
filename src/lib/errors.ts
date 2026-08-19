@@ -23,7 +23,12 @@ export function friendlyAuthError(error: unknown): string {
     case "auth/network-request-failed":
       return "Network error. Check your connection and try again.";
     case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
       return "Sign-in was cancelled.";
+    case "auth/popup-blocked":
+      return "Your browser blocked the sign-in popup. Please allow popups and try again.";
+    case "auth/account-exists-with-different-credential":
+      return "An account already exists with this email using a different sign-in method.";
     default:
       return "Something went wrong. Please try again.";
   }

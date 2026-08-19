@@ -2,20 +2,8 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid} {
+    match /workspaces/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
-
-      match /tasks/{taskId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-
-      match /focusSessions/{sessionId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-
-      match /preferences/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
     }
   }
 }

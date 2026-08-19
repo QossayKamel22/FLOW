@@ -1,24 +1,17 @@
 export function FlowLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div
+      <img
+        src="/logo.png"
+        alt="FLOW"
         style={{
           width: 34,
           height: 34,
           borderRadius: 10,
-          background: "linear-gradient(135deg, #6366f1, #06b6d4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontWeight: 800,
-          fontSize: 16,
           flexShrink: 0,
-          boxShadow: "0 4px 16px rgba(99,102,241,0.4)",
+          objectFit: "cover",
         }}
-      >
-        F
-      </div>
+      />
       {!compact && (
         <div style={{ lineHeight: 1.1 }}>
           <div style={{ fontWeight: 800, fontSize: 16 }}>FLOW</div>

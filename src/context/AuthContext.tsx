@@ -8,8 +8,11 @@ import {
 } from "react";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  signInAnonymously,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
   type User,
@@ -23,6 +26,8 @@ interface AuthContextValue {
   firebaseReady: boolean;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInAsGuest: () => Promise<void>;
   logOut: () => Promise<void>;
 }
 
@@ -64,6 +69,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!auth) throw new Error("Firebase is not configured.");
         try {
           await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+          throw new Error(friendlyAuthError(error));
+        }
+      },
+      async signInWithGoogle() {
+        if (!auth) throw new Error("Firebase is not configured.");
+        try {
+          await signInWithPopup(auth, new GoogleAuthProvider());
+        } catch (error) {
+          throw new Error(friendlyAuthError(error));
+        }
+      },
+      async signInAsGuest() {
+        if (!auth) throw new Error("Firebase is not configured.");
+        try {
+          await signInAnonymously(auth);
         } catch (error) {
           throw new Error(friendlyAuthError(error));
         }
