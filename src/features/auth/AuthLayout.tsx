@@ -12,6 +12,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
           padding: "0 68px",
           background:
             "radial-gradient(circle at 15% 15%, rgba(99,102,241,0.4), transparent 45%), radial-gradient(circle at 85% 85%, rgba(34,211,238,0.3), transparent 45%), radial-gradient(circle at 50% 50%, rgba(139,92,246,0.15), transparent 60%), #05070f",
@@ -78,17 +80,17 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         />
 
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ position: "relative", width: 176, height: 176, marginBottom: 24 }}>
+          <div style={{ position: "relative", width: 232, height: 232, marginBottom: 24 }}>
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
-                inset: -36,
+                inset: -44,
                 background: "radial-gradient(circle, rgba(99,102,241,0.5), transparent 70%)",
-                filter: "blur(10px)",
+                filter: "blur(12px)",
               }}
             />
-            <img src="/logo.svg" alt="FLOW" style={{ position: "relative", width: 176, height: 176, filter: "drop-shadow(0 18px 40px rgba(34,211,238,0.25))" }} />
+            <img src="/logo.svg" alt="FLOW" style={{ position: "relative", width: 232, height: 232, filter: "drop-shadow(0 18px 40px rgba(34,211,238,0.25))" }} />
           </div>
           <div style={{ fontSize: 52, fontWeight: 800, color: "#fff", letterSpacing: -1, lineHeight: 1 }}>FLOW</div>
           <div
