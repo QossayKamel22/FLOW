@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Card } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
 import { SectionHeader } from "../../components/common/States";
 
 const suggestedPrompts = [
@@ -26,27 +25,50 @@ interface Message {
   text: string;
 }
 
+function BotOrb({ size = 34 }: { size?: number }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: "var(--gradient-brand-diag)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 16px rgba(99,102,241,0.45)",
+      }}
+    >
+      <img src="/logo.svg" alt="" style={{ width: size * 0.58, height: size * 0.58 }} />
+    </div>
+  );
+}
+
 export function CopilotPage() {
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", text: "Hi! I'm FLOW AI. Ask me about your leads, deals, or what to prioritize today." },
   ]);
   const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
 
   function send(text: string) {
-    if (!text.trim()) return;
-    const reply =
-      demoResponses[text] ??
-      "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
-    setMessages((prev) => [...prev, { role: "user", text }, { role: "assistant", text: reply }]);
+    if (!text.trim() || typing) return;
+    setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
+    setTyping(true);
+    window.setTimeout(() => {
+      const reply =
+        demoResponses[text] ??
+        "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
+      setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
+      setTyping(false);
+    }, 650);
   }
 
   return (
     <div>
-      <SectionHeader
-        title="AI Copilot"
-        subtitle="A preview of FLOW's upcoming AI-powered sales assistant."
-      />
+      <SectionHeader title="AI Copilot" subtitle="A preview of FLOW's upcoming AI-powered sales assistant." />
 
       <div style={{ marginBottom: 14 }}>
         <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", background: "var(--bg-elevated)", border: "1px solid var(--border)", padding: "4px 10px", borderRadius: 999 }}>
@@ -54,73 +76,188 @@ export function CopilotPage() {
         </span>
       </div>
 
-      <Card style={{ display: "flex", flexDirection: "column", height: 520, padding: 0, overflow: "hidden" }}>
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 12 }} className="scrollbar-thin">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "78%",
-                background: m.role === "user" ? "linear-gradient(135deg, var(--accent), #7c3aed)" : "var(--bg-elevated)",
-                color: m.role === "user" ? "#fff" : "var(--text-primary)",
-                padding: "10px 14px",
-                borderRadius: "var(--radius-lg)",
-                fontSize: 13.5,
-                lineHeight: 1.5,
-              }}
-            >
-              {m.text}
+      <div
+        style={{
+          borderRadius: "var(--radius-xl)",
+          padding: 1,
+          background: "linear-gradient(135deg, rgba(99,102,241,0.45), rgba(34,211,238,0.25), rgba(139,92,246,0.35))",
+        }}
+      >
+        <Card
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: 560,
+            padding: 0,
+            overflow: "hidden",
+            borderRadius: "calc(var(--radius-xl) - 1px)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "16px 20px",
+              borderBottom: "1px solid var(--border)",
+              background: "linear-gradient(180deg, rgba(99,102,241,0.08), transparent)",
+            }}
+          >
+            <BotOrb size={38} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14.5 }}>FLOW AI</div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", display: "inline-block" }} />
+                Ready to help
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div style={{ borderTop: "1px solid var(--border)", padding: 14 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-            {suggestedPrompts.map((p) => (
-              <button
-                key={p}
-                onClick={() => send(p)}
+          <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }} className="scrollbar-thin">
+            {messages.map((m, i) => (
+              <div
+                key={i}
                 style={{
-                  fontSize: 12,
-                  padding: "6px 12px",
-                  borderRadius: 999,
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-elevated)",
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: 10,
+                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                  flexDirection: m.role === "user" ? "row-reverse" : "row",
+                  maxWidth: "82%",
                 }}
               >
-                {p}
-              </button>
+                {m.role === "assistant" && <BotOrb size={28} />}
+                <div
+                  style={{
+                    background: m.role === "user" ? "var(--gradient-brand-diag)" : "var(--bg-elevated)",
+                    color: m.role === "user" ? "#fff" : "var(--text-primary)",
+                    padding: "10px 14px",
+                    borderRadius: "var(--radius-lg)",
+                    fontSize: 13.5,
+                    lineHeight: 1.5,
+                    boxShadow: m.role === "user" ? "0 4px 14px rgba(99,102,241,0.3)" : "none",
+                  }}
+                >
+                  {m.text}
+                </div>
+              </div>
             ))}
+            {typing && (
+              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start" }}>
+                <BotOrb size={28} />
+                <div style={{ background: "var(--bg-elevated)", padding: "12px 16px", borderRadius: "var(--radius-lg)", display: "flex", gap: 4, alignItems: "center" }}>
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "var(--text-tertiary)",
+                        animation: `typingDot 1.2s ${i * 0.15}s ease-in-out infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              send(input);
-            }}
-            style={{ display: "flex", gap: 8 }}
-          >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask FLOW AI…"
+
+          <div style={{ borderTop: "1px solid var(--border)", padding: 14 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+              {suggestedPrompts.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => send(p)}
+                  disabled={typing}
+                  style={{
+                    fontSize: 12,
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-elevated)",
+                    color: "var(--text-secondary)",
+                    cursor: typing ? "default" : "pointer",
+                    opacity: typing ? 0.5 : 1,
+                    transition: "border-color var(--transition-fast), color var(--transition-fast)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--accent)";
+                    e.currentTarget.style.color = "var(--text-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.color = "var(--text-secondary)";
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                send(input);
+              }}
               style={{
-                flex: 1,
-                padding: "10px 14px",
-                borderRadius: "var(--radius-md)",
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
                 border: "1px solid var(--border)",
                 background: "var(--bg-elevated)",
-                color: "var(--text-primary)",
-                fontSize: 13.5,
-                outline: "none",
+                borderRadius: 999,
+                padding: 5,
               }}
-            />
-            <Button type="submit">Send</Button>
-          </form>
-        </div>
-      </Card>
+            >
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask FLOW AI…"
+                style={{
+                  flex: 1,
+                  padding: "8px 14px",
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--text-primary)",
+                  fontSize: 13.5,
+                  outline: "none",
+                }}
+              />
+              <button
+                type="submit"
+                disabled={typing || !input.trim()}
+                aria-label="Send"
+                style={{
+                  width: 36,
+                  height: 36,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "var(--gradient-brand-diag)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: typing || !input.trim() ? "default" : "pointer",
+                  opacity: typing || !input.trim() ? 0.5 : 1,
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.35)",
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </Card>
+      </div>
+
+      <style>{`
+        @keyframes typingDot {
+          0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+      `}</style>
     </div>
   );
 }
