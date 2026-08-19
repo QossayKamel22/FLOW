@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { ProviderButtons } from "./ProviderButtons";
+import { ProviderButtons, GuestLink } from "./ProviderButtons";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -56,12 +56,21 @@ export function LoginPage() {
           Firebase isn't configured yet — add your project keys to .env to enable sign in.
         </div>
       )}
-      <h2 style={{ fontSize: 19, fontWeight: 800, marginBottom: 4 }}>Welcome back</h2>
+      <h2 style={{ fontSize: 19, fontWeight: 800, marginBottom: 4 }}>Welcome back 👋</h2>
       <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 22 }}>
-        Sign in to your FLOW workspace.
+        Sign in to continue to your workspace.
       </p>
+
+      <ProviderButtons onError={(m) => setError(m || null)} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>or</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+      </div>
+
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <Input label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-secondary)" }}>
@@ -77,7 +86,9 @@ export function LoginPage() {
           Sign in
         </Button>
       </form>
-      <ProviderButtons onError={setError} />
+
+      <GuestLink onError={(m) => setError(m || null)} />
+
       <p style={{ textAlign: "center", fontSize: 13.5, color: "var(--text-secondary)", marginTop: 20 }}>
         Don't have an account? <Link to="/signup" style={{ color: "var(--accent)", fontWeight: 600 }}>Create account</Link>
       </p>

@@ -29,7 +29,7 @@ const sizes: Record<Size, CSSProperties> = {
 };
 
 const variants: Record<Variant, CSSProperties> = {
-  primary: { background: "var(--accent)", color: "#fff" },
+  primary: { background: "var(--gradient-brand-diag)", color: "#fff", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" },
   secondary: { background: "var(--bg-elevated)", color: "var(--text-primary)", borderColor: "var(--border)" },
   ghost: { background: "transparent", color: "var(--text-secondary)" },
   danger: { background: "transparent", color: "var(--danger)", borderColor: "rgba(239,68,68,0.3)" },
@@ -57,12 +57,12 @@ export function Button({
         ...style,
       }}
       onMouseEnter={(e) => {
-        if (variant === "primary") e.currentTarget.style.background = "var(--accent-hover)";
+        if (variant === "primary") e.currentTarget.style.filter = "brightness(1.1)";
         if (variant === "secondary") e.currentTarget.style.borderColor = "var(--border-strong)";
         if (variant === "ghost") e.currentTarget.style.background = "var(--bg-elevated)";
       }}
       onMouseLeave={(e) => {
-        if (variant === "primary") e.currentTarget.style.background = "var(--accent)";
+        if (variant === "primary") e.currentTarget.style.filter = "none";
         if (variant === "secondary") e.currentTarget.style.borderColor = "var(--border)";
         if (variant === "ghost") e.currentTarget.style.background = "transparent";
       }}

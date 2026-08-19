@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { ProviderButtons } from "./ProviderButtons";
+import { ProviderButtons, GuestLink } from "./ProviderButtons";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -48,16 +48,27 @@ export function SignupPage() {
       <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 22 }}>
         Start managing your sales pipeline with FLOW.
       </p>
+
+      <ProviderButtons onError={(m) => setError(m || null)} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>or</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+      </div>
+
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Input label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-        <Input label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label="Password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         {error && <div style={{ color: "var(--danger)", fontSize: 13 }}>{error}</div>}
         <Button type="submit" fullWidth loading={loading}>
           Create account
         </Button>
       </form>
-      <ProviderButtons onError={setError} />
+
+      <GuestLink onError={(m) => setError(m || null)} />
+
       <p style={{ textAlign: "center", fontSize: 13.5, color: "var(--text-secondary)", marginTop: 20 }}>
         Already have an account? <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600 }}>Sign in</Link>
       </p>
