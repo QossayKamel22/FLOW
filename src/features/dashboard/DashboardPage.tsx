@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useCollection } from "../../hooks/useCollection";
 import { leadsService, dealsService, followupsService, propertiesService } from "../../services/crmServices";
@@ -5,10 +6,14 @@ import { KpiCard } from "../../components/common/KpiCard";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { BotOrb } from "../../components/common/BotOrb";
+import { Avatar } from "../../components/common/Avatar";
+import { Sparkline } from "../../components/common/Sparkline";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
 import { StatusBadge } from "../../components/common/Badge";
 import { expiringContracts, daysUntil } from "../../lib/contracts";
 import { Link } from "react-router-dom";
+
+const DAY_MS = 86_400_000;
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -25,6 +30,24 @@ export function DashboardPage() {
   const openFollowups = followups.items.filter((f) => !f.completed);
   const contractsDue = expiringContracts(properties.items);
   const hasAnyData = leads.items.length > 0 || deals.items.length > 0 || followups.items.length > 0 || properties.items.length > 0;
+
+  const weeklyTrend = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const startMs = todayStart.getTime() - 6 * DAY_MS;
+    const buckets = Array.from({ length: 7 }, () => 0);
+    for (const l of leads.items) {
+      if (!l.createdAt) continue;
+      const idx = Math.floor((l.createdAt - startMs) / DAY_MS);
+      if (idx >= 0 && idx < 7) buckets[idx] += 1;
+    }
+    return buckets;
+  }, [leads.items]);
+
+  const weeklyTotal = weeklyTrend.reduce((s, v) => s + v, 0);
+  const weeklyPrevHalf = weeklyTrend.slice(0, 3).reduce((s, v) => s + v, 0);
+  const weeklyRecentHalf = weeklyTrend.slice(4).reduce((s, v) => s + v, 0);
+  const trendUp = weeklyRecentHalf >= weeklyPrevHalf;
 
   return (
     <div>
@@ -117,21 +140,56 @@ export function DashboardPage() {
             </Card>
           </div>
 
-          <Card style={{ marginTop: 16 }}>
-            <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Recent leads</h3>
-            {leads.items.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {leads.items.slice(0, 5).map((l) => (
-                  <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13.5 }}>
-                    <span>{l.name} <span style={{ color: "var(--text-tertiary)" }}>· {l.company}</span></span>
-                    <StatusBadge status={l.status} />
-                  </div>
-                ))}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                <div>
+                  <h3 style={{ fontWeight: 800, fontSize: 15 }}>New leads · this week</h3>
+                  <div style={{ fontSize: 26, fontWeight: 800, marginTop: 6 }}>{weeklyTotal}</div>
+                </div>
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: "3px 9px",
+                    borderRadius: 999,
+                    color: trendUp ? "var(--success)" : "var(--text-tertiary)",
+                    background: trendUp ? "rgba(34,197,94,0.12)" : "var(--bg-elevated)",
+                  }}
+                >
+                  {trendUp ? "▲" : "▼"} {trendUp ? "Trending up" : "Slowing down"}
+                </span>
               </div>
-            )}
-          </Card>
+              <div style={{ marginTop: 10 }}>
+                <Sparkline values={weeklyTrend} color="#6366f1" />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 4 }}>
+                <span>7 days ago</span>
+                <span>Today</span>
+              </div>
+            </Card>
+
+            <Card>
+              <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Recent leads</h3>
+              {leads.items.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {leads.items.slice(0, 5).map((l) => (
+                    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <Avatar name={l.name} size={30} />
+                        <span style={{ fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {l.name} <span style={{ color: "var(--text-tertiary)" }}>· {l.company}</span>
+                        </span>
+                      </div>
+                      <StatusBadge status={l.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
         </>
       )}
     </div>

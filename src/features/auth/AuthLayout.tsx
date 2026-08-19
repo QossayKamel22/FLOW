@@ -157,7 +157,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             letterSpacing: 0.2,
           }}
         >
-          Copyright © {new Date().getFullYear()} FLOW Inc. All rights reserved.
+          Copyright © {new Date().getFullYear()} Qossay Kamel. All rights reserved.
         </div>
       </div>
 

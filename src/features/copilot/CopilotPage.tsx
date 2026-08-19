@@ -5,12 +5,13 @@ import { BotOrb } from "../../components/common/BotOrb";
 import { useCollection } from "../../hooks/useCollection";
 import { propertiesService } from "../../services/crmServices";
 import { expiringContracts, daysUntil } from "../../lib/contracts";
+import { useToast } from "../../context/ToastContext";
 
 const suggestedPrompts = [
-  "Which leads should I contact today?",
-  "Which deals need attention?",
-  "Which contracts are expiring soon?",
-  "What should I prioritize?",
+  { icon: "🎯", text: "Which leads should I contact today?" },
+  { icon: "💼", text: "Which deals need attention?" },
+  { icon: "🏠", text: "Which contracts are expiring soon?" },
+  { icon: "⚡", text: "What should I prioritize?" },
 ];
 
 const demoResponses: Record<string, string> = {
@@ -69,6 +70,54 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function FeedbackButtons() {
+  const [choice, setChoice] = useState<"up" | "down" | null>(null);
+  const { show } = useToast();
+
+  function pick(next: "up" | "down") {
+    if (choice) return;
+    setChoice(next);
+    show(next === "up" ? "Thanks for the feedback!" : "Thanks — we'll use this to improve.", "success");
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      <button
+        type="button"
+        onClick={() => pick("up")}
+        title="Good response"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: choice ? "default" : "pointer",
+          color: choice === "up" ? "var(--success)" : "var(--text-tertiary)",
+          fontSize: 11,
+          padding: 2,
+          opacity: choice && choice !== "up" ? 0.35 : 1,
+        }}
+      >
+        👍
+      </button>
+      <button
+        type="button"
+        onClick={() => pick("down")}
+        title="Not helpful"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: choice ? "default" : "pointer",
+          color: choice === "down" ? "var(--danger)" : "var(--text-tertiary)",
+          fontSize: 11,
+          padding: 2,
+          opacity: choice && choice !== "down" ? 0.35 : 1,
+        }}
+      >
+        👎
+      </button>
+    </div>
+  );
+}
+
 export function CopilotPage() {
   const { items: properties } = useCollection(propertiesService);
   const [messages, setMessages] = useState<Message[]>([welcomeMessage()]);
@@ -76,6 +125,7 @@ export function CopilotPage() {
   const [typing, setTyping] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pendingReply = useRef<number | null>(null);
 
   const contractsDue = useMemo(() => expiringContracts(properties), [properties]);
 
@@ -100,7 +150,7 @@ export function CopilotPage() {
     setMessages((prev) => [...prev, { role: "user", text, time: Date.now() }]);
     setInput("");
     setTyping(true);
-    window.setTimeout(() => {
+    pendingReply.current = window.setTimeout(() => {
       const reply =
         text === "Which contracts are expiring soon?"
           ? contractsReply()
@@ -108,7 +158,16 @@ export function CopilotPage() {
             "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
       setMessages((prev) => [...prev, { role: "assistant", text: reply, time: Date.now() }]);
       setTyping(false);
+      pendingReply.current = null;
     }, 650);
+  }
+
+  function stopGenerating() {
+    if (pendingReply.current) {
+      window.clearTimeout(pendingReply.current);
+      pendingReply.current = null;
+    }
+    setTyping(false);
   }
 
   function newChat() {
@@ -159,7 +218,11 @@ export function CopilotPage() {
               background: "linear-gradient(180deg, rgba(99,102,241,0.08), transparent)",
             }}
           >
-            <BotOrb size={44} active={typing} />
+            <div style={{ position: "relative" }}>
+              <BotOrb size={44} active={typing} />
+              <span style={{ position: "absolute", top: -4, right: -6, fontSize: 9, animation: "sparkleFloat 2.2s ease-in-out infinite" }}>✦</span>
+              <span style={{ position: "absolute", bottom: -2, left: -8, fontSize: 7, animation: "sparkleFloat 2.6s ease-in-out infinite 0.6s" }}>✦</span>
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14.5 }}>FLOW AI</div>
               <div style={{ fontSize: 12, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 5 }}>
@@ -173,7 +236,7 @@ export function CopilotPage() {
                     animation: "orbPulse 2s ease-in-out infinite",
                   }}
                 />
-                {typing ? "Thinking…" : "Ready to help"}
+                <span className={typing ? "shimmer-text" : undefined}>{typing ? "Thinking…" : "Ready to help"}</span>
               </div>
             </div>
             <button
@@ -229,9 +292,10 @@ export function CopilotPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, height: 14, paddingLeft: m.role === "user" ? 0 : 4 }}>
                     <span style={{ fontSize: 10.5, color: "var(--text-tertiary)" }}>{formatTime(m.time)}</span>
-                    {m.role === "assistant" && (
-                      <span style={{ opacity: hovered === i ? 1 : 0, transition: "opacity var(--transition-fast)" }}>
+                    {m.role === "assistant" && i > 0 && (
+                      <span style={{ display: "flex", alignItems: "center", gap: 8, opacity: hovered === i ? 1 : 0, transition: "opacity var(--transition-fast)" }}>
                         <CopyButton text={m.text} />
+                        <FeedbackButtons />
                       </span>
                     )}
                   </div>
@@ -239,7 +303,7 @@ export function CopilotPage() {
               </div>
             ))}
             {typing && (
-              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start", animation: "messageIn 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
+              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start", alignItems: "center", animation: "messageIn 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
                 <BotOrb size={30} active />
                 <div style={{ background: "var(--bg-elevated)", padding: "12px 16px", borderRadius: "var(--radius-lg)", display: "flex", gap: 4, alignItems: "center" }}>
                   {[0, 1, 2].map((i) => (
@@ -255,6 +319,26 @@ export function CopilotPage() {
                     />
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={stopGenerating}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-card)",
+                    color: "var(--text-secondary)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, background: "currentColor", borderRadius: 2 }} />
+                  Stop
+                </button>
               </div>
             )}
           </div>
@@ -263,8 +347,8 @@ export function CopilotPage() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
               {suggestedPrompts.map((p) => (
                 <button
-                  key={p}
-                  onClick={() => send(p)}
+                  key={p.text}
+                  onClick={() => send(p.text)}
                   disabled={typing}
                   style={{
                     fontSize: 12,
@@ -276,6 +360,9 @@ export function CopilotPage() {
                     cursor: typing ? "default" : "pointer",
                     opacity: typing ? 0.5 : 1,
                     transform: "scale(1)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
                     transition: "border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast)",
                   }}
                   onMouseEnter={(e) => {
@@ -289,7 +376,8 @@ export function CopilotPage() {
                     e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
-                  {p}
+                  <span>{p.icon}</span>
+                  {p.text}
                 </button>
               ))}
             </div>

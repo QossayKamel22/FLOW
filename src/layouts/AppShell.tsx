@@ -153,7 +153,7 @@ export function AppShell() {
             <button onClick={() => void logOut()} style={{ ...iconBtn, flex: 1 }}>Log out</button>
           </div>
           <div style={{ textAlign: "center", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 14, letterSpacing: 0.2 }}>
-            Copyright © {new Date().getFullYear()} FLOW Inc.
+            Copyright © {new Date().getFullYear()} Qossay Kamel.
             <br />
             All rights reserved.
           </div>

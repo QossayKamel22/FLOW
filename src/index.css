@@ -226,6 +226,49 @@ p {
 .stagger-in > *:nth-child(8) { animation-delay: 315ms; }
 .stagger-in > *:nth-child(n+9) { animation-delay: 360ms; }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: -75%;
+  width: 45%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.32), transparent);
+  transform: skewX(-18deg);
+  transition: left 650ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  left: 135%;
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, var(--text-tertiary) 0%, #fff 50%, var(--text-tertiary) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmerText 1.8s linear infinite;
+}
+@keyframes shimmerText {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes sparkleFloat {
+  0%, 100% { opacity: 0; transform: translateY(2px) scale(0.6); }
+  50% { opacity: 1; transform: translateY(-4px) scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
