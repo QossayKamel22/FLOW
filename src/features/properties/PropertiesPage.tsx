@@ -185,7 +185,7 @@ export function PropertiesPage() {
       ) : filtered.length === 0 ? (
         <EmptyState icon="🏠" title="No properties yet" description="Add a listing to start tracking rentals and sales." action={{ label: "+ New Property", onClick: openCreate }} />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+        <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
           {filtered.map((p) => {
             const flagged = isExpiringSoon(p.contractEnd) || isOverdue(p.contractEnd);
             return (

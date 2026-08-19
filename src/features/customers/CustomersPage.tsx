@@ -113,7 +113,7 @@ export function CustomersPage() {
       ) : filtered.length === 0 ? (
         <EmptyState title="No customers yet" description="Convert a lead or add a customer directly." action={{ label: "+ New Customer", onClick: openCreate }} />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+        <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
           {filtered.map((c) => (
             <Card
               key={c.id}

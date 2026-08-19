@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -6,43 +6,58 @@ import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { RouteLoader } from "../components/common/RouteLoader";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
+import {
+  IconDashboard,
+  IconTarget,
+  IconUsers,
+  IconHome,
+  IconBriefcase,
+  IconClock,
+  IconCalendar,
+  IconSparkle,
+  IconTrendingUp,
+  IconBell,
+  IconSettings,
+} from "../components/common/Icons";
 
-const navItems = [
-  { to: "/app", label: "Dashboard", icon: "📊", end: true },
-  { to: "/app/leads", label: "Leads", icon: "🎯" },
-  { to: "/app/customers", label: "Customers", icon: "🤝" },
-  { to: "/app/properties", label: "Properties", icon: "🏠" },
-  { to: "/app/deals", label: "Deals", icon: "💼" },
-  { to: "/app/followups", label: "Follow-ups", icon: "⏰" },
-  { to: "/app/calendar", label: "Calendar", icon: "📅" },
-  { to: "/app/copilot", label: "AI Copilot", icon: "✨" },
-  { to: "/app/analytics", label: "Analytics", icon: "📈" },
-  { to: "/app/notifications", label: "Notifications", icon: "🔔" },
-  { to: "/app/settings", label: "Settings", icon: "⚙️" },
+const navItems: { to: string; label: string; icon: ComponentType<{ size?: number }>; end?: boolean }[] = [
+  { to: "/app", label: "Dashboard", icon: IconDashboard, end: true },
+  { to: "/app/leads", label: "Leads", icon: IconTarget },
+  { to: "/app/customers", label: "Customers", icon: IconUsers },
+  { to: "/app/properties", label: "Properties", icon: IconHome },
+  { to: "/app/deals", label: "Deals", icon: IconBriefcase },
+  { to: "/app/followups", label: "Follow-ups", icon: IconClock },
+  { to: "/app/calendar", label: "Calendar", icon: IconCalendar },
+  { to: "/app/copilot", label: "AI Copilot", icon: IconSparkle },
+  { to: "/app/analytics", label: "Analytics", icon: IconTrendingUp },
+  { to: "/app/notifications", label: "Notifications", icon: IconBell },
+  { to: "/app/settings", label: "Settings", icon: IconSettings },
 ];
 
 const LUXURY = "#d4af6a";
 
-function NavIcon({ icon, active }: { icon: string; active: boolean }) {
+function NavIcon({ Icon, active }: { Icon: ComponentType<{ size?: number }>; active: boolean }) {
   return (
     <span
       style={{
-        width: 27,
-        height: 27,
+        width: 28,
+        height: 28,
         borderRadius: 8,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 13.5,
         flexShrink: 0,
-        background: active ? "rgba(255,255,255,0.2)" : `${LUXURY}1a`,
+        color: active ? "#fff" : LUXURY,
+        background: active
+          ? "rgba(255,255,255,0.16)"
+          : `linear-gradient(150deg, ${LUXURY}26, ${LUXURY}0d)`,
         boxShadow: active
           ? "inset 0 0 0 1px rgba(255,255,255,0.35)"
-          : `inset 0 0 0 1px ${LUXURY}59`,
-        transition: "background var(--transition-fast), box-shadow var(--transition-fast)",
+          : `inset 0 0 0 1px ${LUXURY}4d`,
+        transition: "background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast), transform var(--transition-fast)",
       }}
     >
-      {icon}
+      <Icon size={15} />
     </span>
   );
 }
@@ -86,7 +101,7 @@ export function AppShell() {
         <div style={{ padding: "6px 10px 20px" }}>
           <FlowLogo />
         </div>
-        {navItems.map((item) => (
+        {navItems.map((item, i) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -106,6 +121,7 @@ export function AppShell() {
                 : "transparent",
               boxShadow: isActive ? "0 6px 16px -4px rgba(99,102,241,0.5)" : "none",
               transform: "translateX(0)",
+              animation: `fadeIn 320ms ease ${i * 30}ms both`,
               transition: "background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast)",
             })}
             onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(3px)")}
@@ -113,7 +129,7 @@ export function AppShell() {
           >
             {({ isActive }) => (
               <>
-                <NavIcon icon={item.icon} active={isActive} />
+                <NavIcon Icon={item.icon} active={isActive} />
                 {item.label}
               </>
             )}
@@ -135,6 +151,11 @@ export function AppShell() {
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button onClick={toggleTheme} style={iconBtn}>{theme === "dark" ? "☀️" : "🌙"}</button>
             <button onClick={() => void logOut()} style={{ ...iconBtn, flex: 1 }}>Log out</button>
+          </div>
+          <div style={{ textAlign: "center", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 14, letterSpacing: 0.2 }}>
+            Copyright © {new Date().getFullYear()} FLOW Inc.
+            <br />
+            All rights reserved.
           </div>
         </div>
       </aside>
@@ -181,7 +202,7 @@ export function AppShell() {
               >
                 {({ isActive }) => (
                   <>
-                    <NavIcon icon={item.icon} active={isActive} />
+                    <NavIcon Icon={item.icon} active={isActive} />
                     {item.label}
                   </>
                 )}

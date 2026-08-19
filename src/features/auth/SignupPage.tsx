@@ -5,6 +5,7 @@ import { ProviderButtons, GuestLink } from "./ProviderButtons";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useAuth } from "../../context/AuthContext";
+import { LoadingScreen } from "../../components/common/LoadingScreen";
 
 export function SignupPage() {
   const { signUp, firebaseReady } = useAuth();
@@ -13,7 +14,7 @@ export function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -26,16 +27,22 @@ export function SignupPage() {
       setError("Password must be at least 6 characters.");
       return;
     }
-    setLoading(true);
+    setAuthenticating(true);
     try {
       await signUp(name, email, password);
       navigate("/onboarding");
     } catch (err) {
       setError((err as Error).message);
-    } finally {
-      setLoading(false);
+      setAuthenticating(false);
     }
   }
+
+  function handleError(message: string) {
+    setError(message || null);
+    if (message) setAuthenticating(false);
+  }
+
+  if (authenticating) return <LoadingScreen />;
 
   return (
     <AuthLayout>
@@ -49,7 +56,7 @@ export function SignupPage() {
         Start managing your sales pipeline with FLOW.
       </p>
 
-      <ProviderButtons onError={(m) => setError(m || null)} />
+      <ProviderButtons onError={handleError} onStart={() => setAuthenticating(true)} />
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
@@ -62,12 +69,12 @@ export function SignupPage() {
         <Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label="Password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         {error && <div style={{ color: "var(--danger)", fontSize: 13 }}>{error}</div>}
-        <Button type="submit" fullWidth loading={loading}>
+        <Button type="submit" fullWidth>
           Create account
         </Button>
       </form>
 
-      <GuestLink onError={(m) => setError(m || null)} />
+      <GuestLink onError={handleError} onStart={() => setAuthenticating(true)} />
 
       <p style={{ textAlign: "center", fontSize: 13.5, color: "var(--text-secondary)", marginTop: 20 }}>
         Already have an account? <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600 }}>Sign in</Link>

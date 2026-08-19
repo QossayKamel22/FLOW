@@ -9,6 +9,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { friendlyAuthError } from "../../lib/errors";
 import { useToast } from "../../context/ToastContext";
+import { LoadingScreen } from "../../components/common/LoadingScreen";
 
 export function LoginPage() {
   const { logIn, firebaseReady } = useAuth();
@@ -18,7 +19,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -27,15 +28,19 @@ export function LoginPage() {
       setError("Enter your email and password.");
       return;
     }
-    setLoading(true);
+    setAuthenticating(true);
     try {
       await logIn(email, password);
       navigate("/app");
     } catch (err) {
       setError((err as Error).message);
-    } finally {
-      setLoading(false);
+      setAuthenticating(false);
     }
+  }
+
+  function handleError(message: string) {
+    setError(message || null);
+    if (message) setAuthenticating(false);
   }
 
   async function handleForgotPassword() {
@@ -49,6 +54,8 @@ export function LoginPage() {
     }
   }
 
+  if (authenticating) return <LoadingScreen />;
+
   return (
     <AuthLayout>
       {!firebaseReady && (
@@ -61,7 +68,7 @@ export function LoginPage() {
         Sign in to continue to your workspace.
       </p>
 
-      <ProviderButtons onError={(m) => setError(m || null)} />
+      <ProviderButtons onError={handleError} onStart={() => setAuthenticating(true)} />
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
@@ -82,12 +89,12 @@ export function LoginPage() {
           </button>
         </div>
         {error && <div style={{ color: "var(--danger)", fontSize: 13 }}>{error}</div>}
-        <Button type="submit" fullWidth loading={loading}>
+        <Button type="submit" fullWidth>
           Sign in
         </Button>
       </form>
 
-      <GuestLink onError={(m) => setError(m || null)} />
+      <GuestLink onError={handleError} onStart={() => setAuthenticating(true)} />
 
       <p style={{ textAlign: "center", fontSize: 13.5, color: "var(--text-secondary)", marginTop: 20 }}>
         Don't have an account? <Link to="/signup" style={{ color: "var(--accent)", fontWeight: 600 }}>Create account</Link>

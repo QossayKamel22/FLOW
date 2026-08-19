@@ -33,7 +33,7 @@ function MicrosoftIcon() {
   );
 }
 
-export function ProviderButtons({ onError }: { onError: (message: string) => void }) {
+export function ProviderButtons({ onError, onStart }: { onError: (message: string) => void; onStart?: () => void }) {
   const { signInWithGoogle, firebaseReady } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -41,6 +41,7 @@ export function ProviderButtons({ onError }: { onError: (message: string) => voi
   async function handleGoogle() {
     onError("");
     setBusy(true);
+    onStart?.();
     try {
       await signInWithGoogle();
       navigate("/app");
@@ -66,7 +67,7 @@ export function ProviderButtons({ onError }: { onError: (message: string) => voi
   );
 }
 
-export function GuestLink({ onError }: { onError: (message: string) => void }) {
+export function GuestLink({ onError, onStart }: { onError: (message: string) => void; onStart?: () => void }) {
   const { signInAsGuest, firebaseReady } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -74,6 +75,7 @@ export function GuestLink({ onError }: { onError: (message: string) => void }) {
   async function handleGuest() {
     onError("");
     setBusy(true);
+    onStart?.();
     try {
       await signInAsGuest();
       navigate("/app");

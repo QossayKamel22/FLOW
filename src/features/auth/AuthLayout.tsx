@@ -144,6 +144,21 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             Better Sales.
           </div>
         </div>
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: 0,
+            right: 0,
+            textAlign: "center",
+            fontSize: 11,
+            color: "rgba(255,255,255,0.35)",
+            letterSpacing: 0.2,
+          }}
+        >
+          Copyright © {new Date().getFullYear()} FLOW Inc. All rights reserved.
+        </div>
       </div>
 
       <div

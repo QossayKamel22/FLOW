@@ -40,7 +40,7 @@ export function DashboardPage() {
         />
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+          <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
             <KpiCard label="New Leads" value={String(leads.items.length)} icon="🎯" tone="indigo" trend={leads.items.length ? "Live from your data" : undefined} />
             <KpiCard label="Active Deals" value={String(activeDeals.length)} icon="💼" tone="violet" />
             <KpiCard label="Follow-ups" value={String(openFollowups.length)} icon="⏰" tone="cyan" />
