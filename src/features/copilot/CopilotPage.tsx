@@ -27,15 +27,54 @@ const demoResponses: Record<string, string> = {
 interface Message {
   role: "user" | "assistant";
   text: string;
+  time: number;
+}
+
+function welcomeMessage(): Message {
+  return {
+    role: "assistant",
+    text: "Hi! I'm FLOW AI. Ask me about your leads, deals, properties, or what to prioritize today.",
+    time: Date.now(),
+  };
+}
+
+function formatTime(ms: number) {
+  return new Date(ms).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard.writeText(text);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+      }}
+      title="Copy"
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        color: "var(--text-tertiary)",
+        fontSize: 11,
+        padding: 2,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      {copied ? "✓ Copied" : "⧉"}
+    </button>
+  );
 }
 
 export function CopilotPage() {
   const { items: properties } = useCollection(propertiesService);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Hi! I'm FLOW AI. Ask me about your leads, deals, properties, or what to prioritize today." },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage()]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [hovered, setHovered] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const contractsDue = useMemo(() => expiringContracts(properties), [properties]);
@@ -58,7 +97,7 @@ export function CopilotPage() {
 
   function send(text: string) {
     if (!text.trim() || typing) return;
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages((prev) => [...prev, { role: "user", text, time: Date.now() }]);
     setInput("");
     setTyping(true);
     window.setTimeout(() => {
@@ -67,9 +106,14 @@ export function CopilotPage() {
           ? contractsReply()
           : demoResponses[text] ??
             "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
-      setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
+      setMessages((prev) => [...prev, { role: "assistant", text: reply, time: Date.now() }]);
       setTyping(false);
     }, 650);
+  }
+
+  function newChat() {
+    setMessages([welcomeMessage()]);
+    setInput("");
   }
 
   return (
@@ -116,7 +160,7 @@ export function CopilotPage() {
             }}
           >
             <BotOrb size={44} active={typing} />
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14.5 }}>FLOW AI</div>
               <div style={{ fontSize: 12, color: "var(--text-tertiary)", display: "flex", alignItems: "center", gap: 5 }}>
                 <span
@@ -132,6 +176,24 @@ export function CopilotPage() {
                 {typing ? "Thinking…" : "Ready to help"}
               </div>
             </div>
+            <button
+              type="button"
+              onClick={newChat}
+              disabled={messages.length <= 1}
+              style={{
+                fontSize: 12.5,
+                fontWeight: 600,
+                padding: "7px 12px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border)",
+                background: "var(--bg-elevated)",
+                color: "var(--text-secondary)",
+                cursor: messages.length <= 1 ? "default" : "pointer",
+                opacity: messages.length <= 1 ? 0.5 : 1,
+              }}
+            >
+              + New chat
+            </button>
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }} className="scrollbar-thin">
@@ -146,21 +208,33 @@ export function CopilotPage() {
                   maxWidth: "82%",
                   animation: "messageIn 320ms cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
               >
                 {m.role === "assistant" && <BotOrb size={30} />}
-                <div
-                  style={{
-                    background: m.role === "user" ? "var(--gradient-brand-diag)" : "var(--bg-elevated)",
-                    color: m.role === "user" ? "#fff" : "var(--text-primary)",
-                    padding: "10px 14px",
-                    borderRadius: "var(--radius-lg)",
-                    fontSize: 13.5,
-                    lineHeight: 1.5,
-                    whiteSpace: "pre-line",
-                    boxShadow: m.role === "user" ? "0 4px 14px rgba(99,102,241,0.3)" : "none",
-                  }}
-                >
-                  {m.text}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+                  <div
+                    style={{
+                      background: m.role === "user" ? "var(--gradient-brand-diag)" : "var(--bg-elevated)",
+                      color: m.role === "user" ? "#fff" : "var(--text-primary)",
+                      padding: "10px 14px",
+                      borderRadius: "var(--radius-lg)",
+                      fontSize: 13.5,
+                      lineHeight: 1.5,
+                      whiteSpace: "pre-line",
+                      boxShadow: m.role === "user" ? "0 4px 14px rgba(99,102,241,0.3)" : "none",
+                    }}
+                  >
+                    {m.text}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, height: 14, paddingLeft: m.role === "user" ? 0 : 4 }}>
+                    <span style={{ fontSize: 10.5, color: "var(--text-tertiary)" }}>{formatTime(m.time)}</span>
+                    {m.role === "assistant" && (
+                      <span style={{ opacity: hovered === i ? 1 : 0, transition: "opacity var(--transition-fast)" }}>
+                        <CopyButton text={m.text} />
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

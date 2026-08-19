@@ -1,37 +1,44 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
+import { ProfileAvatar } from "../components/common/ProfileAvatar";
+import { RouteLoader } from "../components/common/RouteLoader";
+import { useProfilePhoto } from "../hooks/useProfilePhoto";
 
 const navItems = [
-  { to: "/app", label: "Dashboard", icon: "📊", end: true, color: "#6366f1" },
-  { to: "/app/leads", label: "Leads", icon: "🎯", color: "#f43f5e" },
-  { to: "/app/customers", label: "Customers", icon: "🤝", color: "#f59e0b" },
-  { to: "/app/properties", label: "Properties", icon: "🏠", color: "#eab308" },
-  { to: "/app/deals", label: "Deals", icon: "💼", color: "#a855f7" },
-  { to: "/app/followups", label: "Follow-ups", icon: "⏰", color: "#ec4899" },
-  { to: "/app/calendar", label: "Calendar", icon: "📅", color: "#22d3ee" },
-  { to: "/app/copilot", label: "AI Copilot", icon: "✨", color: "#8b5cf6" },
-  { to: "/app/analytics", label: "Analytics", icon: "📈", color: "#34d399" },
-  { to: "/app/notifications", label: "Notifications", icon: "🔔", color: "#fb923c" },
-  { to: "/app/settings", label: "Settings", icon: "⚙️", color: "#94a3b8" },
+  { to: "/app", label: "Dashboard", icon: "📊", end: true },
+  { to: "/app/leads", label: "Leads", icon: "🎯" },
+  { to: "/app/customers", label: "Customers", icon: "🤝" },
+  { to: "/app/properties", label: "Properties", icon: "🏠" },
+  { to: "/app/deals", label: "Deals", icon: "💼" },
+  { to: "/app/followups", label: "Follow-ups", icon: "⏰" },
+  { to: "/app/calendar", label: "Calendar", icon: "📅" },
+  { to: "/app/copilot", label: "AI Copilot", icon: "✨" },
+  { to: "/app/analytics", label: "Analytics", icon: "📈" },
+  { to: "/app/notifications", label: "Notifications", icon: "🔔" },
+  { to: "/app/settings", label: "Settings", icon: "⚙️" },
 ];
 
-function NavIcon({ icon, color, active }: { icon: string; color: string; active: boolean }) {
+const LUXURY = "#d4af6a";
+
+function NavIcon({ icon, active }: { icon: string; active: boolean }) {
   return (
     <span
       style={{
-        width: 26,
-        height: 26,
+        width: 27,
+        height: 27,
         borderRadius: 8,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontSize: 13.5,
         flexShrink: 0,
-        background: active ? "rgba(255,255,255,0.22)" : `${color}22`,
-        boxShadow: active ? "inset 0 0 0 1px rgba(255,255,255,0.3)" : `inset 0 0 0 1px ${color}33`,
+        background: active ? "rgba(255,255,255,0.2)" : `${LUXURY}1a`,
+        boxShadow: active
+          ? "inset 0 0 0 1px rgba(255,255,255,0.35)"
+          : `inset 0 0 0 1px ${LUXURY}59`,
         transition: "background var(--transition-fast), box-shadow var(--transition-fast)",
       }}
     >
@@ -43,11 +50,20 @@ function NavIcon({ icon, color, active }: { icon: string; color: string; active:
 export function AppShell() {
   const { user, logOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { photoURL } = useProfilePhoto();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(true);
   const location = useLocation();
+
+  useEffect(() => {
+    setRouteLoading(true);
+    const t = window.setTimeout(() => setRouteLoading(false), 320);
+    return () => window.clearTimeout(t);
+  }, [location.pathname]);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
+      {routeLoading && <RouteLoader />}
       {/* Desktop sidebar */}
       <aside
         className="scrollbar-thin"
@@ -97,7 +113,7 @@ export function AppShell() {
           >
             {({ isActive }) => (
               <>
-                <NavIcon icon={item.icon} color={item.color} active={isActive} />
+                <NavIcon icon={item.icon} active={isActive} />
                 {item.label}
               </>
             )}
@@ -106,23 +122,7 @@ export function AppShell() {
 
         <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px" }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--accent), #06b6d4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 13,
-                flexShrink: 0,
-              }}
-            >
-              {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
-            </div>
+            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={32} />
             <div style={{ overflow: "hidden" }}>
               <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {user?.displayName || "Account"}
@@ -181,7 +181,7 @@ export function AppShell() {
               >
                 {({ isActive }) => (
                   <>
-                    <NavIcon icon={item.icon} color={item.color} active={isActive} />
+                    <NavIcon icon={item.icon} active={isActive} />
                     {item.label}
                   </>
                 )}

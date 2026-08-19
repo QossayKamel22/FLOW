@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { updatePassword, sendPasswordResetEmail } from "firebase/auth";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { auth } from "../../lib/firebase";
 import { getPreferences, savePreferences, type UserPreferences } from "../../services/userService";
+import { useProfilePhoto, fileToSquareDataUrl } from "../../hooks/useProfilePhoto";
+import { ProfileAvatar } from "../../components/common/ProfileAvatar";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -15,8 +17,11 @@ export function SettingsPage() {
   const { user, logOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const { show } = useToast();
+  const { photoURL, hasCustomPhoto, setPhoto, removePhoto } = useProfilePhoto();
   const [prefs, setPrefs] = useState<UserPreferences | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -29,6 +34,35 @@ export function SettingsPage() {
     setPrefs(next);
     await savePreferences(user.uid, partial);
     show("Saved.", "success");
+  }
+
+  async function handlePhotoSelect(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      show("Please choose an image file.", "error");
+      return;
+    }
+    setUploading(true);
+    try {
+      const dataUrl = await fileToSquareDataUrl(file);
+      await setPhoto(dataUrl);
+      show("Profile photo updated.", "success");
+    } catch (err) {
+      show((err as Error).message || "Couldn't update your photo.", "error");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleRemovePhoto() {
+    try {
+      await removePhoto();
+      show("Profile photo removed.", "success");
+    } catch {
+      show("Couldn't remove your photo.", "error");
+    }
   }
 
   async function handleResetPassword() {
@@ -62,6 +96,23 @@ export function SettingsPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <Card>
           <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>Profile</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={64} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button size="sm" variant="secondary" loading={uploading} onClick={() => fileInputRef.current?.click()}>
+                  {hasCustomPhoto ? "Change photo" : "Upload photo"}
+                </Button>
+                {hasCustomPhoto && (
+                  <Button size="sm" variant="ghost" onClick={handleRemovePhoto}>Remove</Button>
+                )}
+              </div>
+              <span style={{ fontSize: 11.5, color: "var(--text-tertiary)" }}>
+                {!hasCustomPhoto && user?.photoURL ? "Using your Google account photo." : "JPG or PNG, square works best."}
+              </span>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: "none" }} />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Input label="Name" value={user?.displayName ?? ""} disabled />
             <Input label="Email" value={user?.email ?? ""} disabled />

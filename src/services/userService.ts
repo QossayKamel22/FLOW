@@ -10,6 +10,7 @@ export interface UserPreferences {
   industry: string;
   emailNotifications: boolean;
   dailyBriefing: boolean;
+  photoURL?: string;
 }
 
 const defaultPreferences: UserPreferences = {
