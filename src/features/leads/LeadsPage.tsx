@@ -9,6 +9,7 @@ import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
 import { SectionHeader, LoadingState, EmptyState, ErrorState } from "../../components/common/States";
 import { StatusBadge, ScoreBadge } from "../../components/common/Badge";
+import { Avatar } from "../../components/common/Avatar";
 import { useToast } from "../../context/ToastContext";
 
 const statuses: LeadStatus[] = ["New", "Contacted", "Qualified", "Proposal", "Won", "Lost"];
@@ -26,6 +27,26 @@ const emptyForm = {
   notes: "",
 };
 
+function MiniStat({ label, value, tone }: { label: string; value: number | string; tone: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        background: "var(--bg-card)",
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: tone, flexShrink: 0 }} />
+      <span style={{ fontSize: 20, fontWeight: 800 }}>{value}</span>
+      <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{label}</span>
+    </div>
+  );
+}
+
 export function LeadsPage() {
   const { items, loading, error, uid } = useCollection(leadsService);
   const { show } = useToast();
@@ -35,6 +56,7 @@ export function LeadsPage() {
   const [editing, setEditing] = useState<Lead | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null);
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return items.filter((l) => {
@@ -46,6 +68,9 @@ export function LeadsPage() {
       return matchesSearch && matchesStatus;
     });
   }, [items, search, statusFilter]);
+
+  const hotCount = useMemo(() => items.filter((l) => l.score >= 80).length, [items]);
+  const wonCount = useMemo(() => items.filter((l) => l.status === "Won").length, [items]);
 
   function openCreate() {
     setEditing(null);
@@ -95,6 +120,14 @@ export function LeadsPage() {
         action={<Button onClick={openCreate}>+ New Lead</Button>}
       />
 
+      {!loading && !error && items.length > 0 && (
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+          <MiniStat label="Total leads" value={items.length} tone="var(--accent)" />
+          <MiniStat label="Hot leads" value={hotCount} tone="var(--danger)" />
+          <MiniStat label="Won" value={wonCount} tone="var(--success)" />
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <Input placeholder="Search leads by name or company…" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -110,19 +143,34 @@ export function LeadsPage() {
         <EmptyState title="No leads found" description="Create your first lead to start building your pipeline." action={{ label: "+ New Lead", onClick: openCreate }} />
       ) : (
         <Card padding={0} style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, minWidth: 780 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, minWidth: 820 }}>
             <thead>
               <tr style={{ textAlign: "left", color: "var(--text-tertiary)", fontSize: 12 }}>
-                {["Name", "Company", "Status", "Score", "Source", "Next Action", ""].map((h) => (
+                {["Lead", "Company", "Status", "Score", "Source", "Next Action", ""].map((h) => (
                   <th key={h} style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-in">
               {filtered.map((lead) => (
-                <tr key={lead.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 16px", fontWeight: 600 }}>{lead.name}
-                    <div style={{ fontSize: 12, color: "var(--text-tertiary)", fontWeight: 400 }}>{lead.email}</div>
+                <tr
+                  key={lead.id}
+                  style={{
+                    borderBottom: "1px solid var(--border)",
+                    background: hoveredRow === lead.id ? "var(--bg-elevated)" : "transparent",
+                    transition: "background var(--transition-fast)",
+                  }}
+                  onMouseEnter={() => setHoveredRow(lead.id)}
+                  onMouseLeave={() => setHoveredRow((h) => (h === lead.id ? null : h))}
+                >
+                  <td style={{ padding: "10px 16px", fontWeight: 600 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Avatar name={lead.name} size={30} />
+                      <div>
+                        {lead.name}
+                        <div style={{ fontSize: 12, color: "var(--text-tertiary)", fontWeight: 400 }}>{lead.email}</div>
+                      </div>
+                    </div>
                   </td>
                   <td style={{ padding: "12px 16px" }}>{lead.company}</td>
                   <td style={{ padding: "12px 16px" }}><StatusBadge status={lead.status} /></td>

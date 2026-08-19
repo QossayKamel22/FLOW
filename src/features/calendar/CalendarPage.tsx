@@ -9,6 +9,8 @@ import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
 import { SectionHeader, LoadingState, EmptyState, ErrorState } from "../../components/common/States";
 import { useToast } from "../../context/ToastContext";
+import { IconClock, IconUsers, IconAlertTriangle, IconFlag } from "../../components/common/Icons";
+import type { ComponentType } from "react";
 
 const types = ["Follow-up", "Meeting", "Deadline", "Other"] as const;
 const emptyForm = { title: "", date: "", time: "", type: "Meeting" as Activity["type"], notes: "" };
@@ -20,10 +22,60 @@ const typeColor: Record<Activity["type"], string> = {
   Other: "#a78bfa",
 };
 
+const typeIconComponent: Record<Activity["type"], ComponentType<{ size?: number }>> = {
+  "Follow-up": IconClock,
+  Meeting: IconUsers,
+  Deadline: IconAlertTriangle,
+  Other: IconFlag,
+};
+
+function TypeIcon({ type, size = 14 }: { type: Activity["type"]; size?: number }) {
+  const Icon = typeIconComponent[type];
+  const color = typeColor[type];
+  return (
+    <span
+      style={{
+        width: size + 12,
+        height: size + 12,
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color,
+        background: `${color}1f`,
+        boxShadow: `inset 0 0 0 1px ${color}40`,
+        flexShrink: 0,
+      }}
+    >
+      <Icon size={size} />
+    </span>
+  );
+}
+
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function toDateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        background: "var(--bg-card)",
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: tone, flexShrink: 0 }} />
+      <span style={{ fontSize: 20, fontWeight: 800 }}>{value}</span>
+      <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{label}</span>
+    </div>
+  );
 }
 
 export function CalendarPage() {
@@ -58,6 +110,21 @@ export function CalendarPage() {
     }
     return Array.from(map.entries());
   }, [visibleItems]);
+
+  const { weekCount, overdueCount } = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(todayStart.getTime() + 7 * 86_400_000);
+    let week = 0;
+    let overdue = 0;
+    for (const a of items) {
+      if (!a.date) continue;
+      const d = new Date(a.date + "T00:00:00");
+      if (d >= todayStart && d < weekEnd) week++;
+      if (d < todayStart) overdue++;
+    }
+    return { weekCount: week, overdueCount: overdue };
+  }, [items]);
 
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const cells = useMemo(() => {
@@ -137,6 +204,12 @@ export function CalendarPage() {
       ) : items.length === 0 ? (
         <EmptyState title="No activities scheduled" description="Add a meeting, deadline, or follow-up." action={{ label: "+ New Activity", onClick: () => openCreate() }} />
       ) : (
+        <>
+        <div className="stagger-in" style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+          <MiniStat label="Total activities" value={items.length} tone="var(--accent)" />
+          <MiniStat label="Next 7 days" value={weekCount} tone="#22d3ee" />
+          <MiniStat label="Overdue" value={overdueCount} tone="var(--danger)" />
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(280px, 1fr)", gap: 20, alignItems: "start" }}>
           <Card padding={20}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -178,7 +251,16 @@ export function CalendarPage() {
                       alignItems: "flex-start",
                       gap: 4,
                       textAlign: "left",
-                      transition: "border-color var(--transition-fast), background var(--transition-fast)",
+                      transform: "scale(1)",
+                      transition: "border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.04)";
+                      if (!isSelected) e.currentTarget.style.borderColor = "var(--border-strong)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      if (!isSelected) e.currentTarget.style.borderColor = "var(--border)";
                     }}
                   >
                     <span
@@ -193,6 +275,7 @@ export function CalendarPage() {
                         justifyContent: "center",
                         borderRadius: cell.isToday ? "50%" : undefined,
                         background: cell.isToday ? "var(--accent-soft)" : undefined,
+                        animation: cell.isToday ? "orbPulse 2.4s ease-in-out infinite" : undefined,
                       }}
                     >
                       {cell.date.getDate()}
@@ -250,13 +333,28 @@ export function CalendarPage() {
                     {!selectedDate && (
                       <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 8 }}>{date}</div>
                     )}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {dayItems.map((a) => (
-                        <Card key={a.id} padding={14} style={{ borderLeft: `3px solid ${typeColor[a.type]}` }}>
+                        <Card
+                          key={a.id}
+                          padding={14}
+                          style={{ borderLeft: `3px solid ${typeColor[a.type]}`, transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 12px 24px -8px rgba(99,102,241,0.2)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "none";
+                            e.currentTarget.style.boxShadow = "var(--shadow-card)";
+                          }}
+                        >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <div style={{ fontWeight: 600, fontSize: 13.5 }}>{a.time && `${a.time} · `}{a.title}</div>
-                              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{a.type}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <TypeIcon type={a.type} />
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: 13.5 }}>{a.time && `${a.time} · `}{a.title}</div>
+                                <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{a.type}</div>
+                              </div>
                             </div>
                             <div style={{ display: "flex", gap: 6 }}>
                               <Button size="sm" variant="ghost" onClick={() => openEdit(a)}>Edit</Button>
@@ -272,6 +370,7 @@ export function CalendarPage() {
             )}
           </div>
         </div>
+        </>
       )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Edit activity" : "New activity"}>

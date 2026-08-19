@@ -17,6 +17,7 @@ const base: CSSProperties = {
   gap: 8,
   borderRadius: "var(--radius-md)",
   fontWeight: 600,
+  letterSpacing: 0.1,
   cursor: "pointer",
   transition: "background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast)",
   border: "1px solid transparent",
@@ -92,7 +93,9 @@ export function Button({
         }
         if (variant === "secondary") {
           e.currentTarget.style.borderColor = "#d4af6a80";
+          e.currentTarget.style.background = "var(--bg-card)";
           e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(212,175,106,0.35)";
         }
         if (variant === "ghost") e.currentTarget.style.background = "var(--bg-elevated)";
       }}
@@ -103,7 +106,9 @@ export function Button({
         }
         if (variant === "secondary") {
           e.currentTarget.style.borderColor = "var(--border)";
+          e.currentTarget.style.background = "var(--bg-elevated)";
           e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.15)";
         }
         if (variant === "ghost") e.currentTarget.style.background = "transparent";
       }}

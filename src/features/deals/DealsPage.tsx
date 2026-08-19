@@ -11,6 +11,14 @@ import { SectionHeader, LoadingState, EmptyState, ErrorState } from "../../compo
 import { useToast } from "../../context/ToastContext";
 
 const stages: DealStage[] = ["Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"];
+const stageColor: Record<DealStage, string> = {
+  Lead: "#6366f1",
+  Qualified: "#38bdf8",
+  Proposal: "#a855f7",
+  Negotiation: "#f59e0b",
+  Won: "#22c55e",
+  Lost: "#ef4444",
+};
 const emptyForm = { name: "", company: "", value: 0, stage: "Lead" as DealStage, expectedClose: "", owner: "", notes: "" };
 
 export function DealsPage() {
@@ -21,6 +29,7 @@ export function DealsPage() {
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<Deal | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<DealStage | null>(null);
 
   function openCreate(stage?: DealStage) {
     setEditing(null);
@@ -79,20 +88,39 @@ export function DealsPage() {
       ) : items.length === 0 ? (
         <EmptyState title="No deals yet" description="Create your first deal to start tracking your pipeline." action={{ label: "+ New Deal", onClick: () => openCreate() }} />
       ) : (
-        <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }} className="scrollbar-thin">
+        <div className="stagger-in scrollbar-thin" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
           {stages.map((stage) => {
             const stageDeals = items.filter((d) => d.stage === stage);
             const total = stageDeals.reduce((s, d) => s + (d.value || 0), 0);
+            const isOver = dragOverStage === stage;
             return (
               <div
                 key={stage}
-                style={{ minWidth: 260, flex: "0 0 260px" }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => dragId && moveStage(dragId, stage)}
+                style={{
+                  minWidth: 260,
+                  flex: "0 0 260px",
+                  borderRadius: "var(--radius-lg)",
+                  padding: 10,
+                  background: isOver ? `${stageColor[stage]}0f` : "transparent",
+                  border: `1px dashed ${isOver ? stageColor[stage] : "transparent"}`,
+                  transition: "background var(--transition-fast), border-color var(--transition-fast)",
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverStage !== stage) setDragOverStage(stage);
+                }}
+                onDragLeave={() => setDragOverStage((s) => (s === stage ? null : s))}
+                onDrop={() => {
+                  if (dragId) moveStage(dragId, stage);
+                  setDragOverStage(null);
+                }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontWeight: 700, fontSize: 13.5 }}>{stage} <span style={{ color: "var(--text-tertiary)", fontWeight: 400 }}>({stageDeals.length})</span></span>
-                  <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>${total.toLocaleString()}</span>
+                  <span style={{ fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: stageColor[stage] }} />
+                    {stage} <span style={{ color: "var(--text-tertiary)", fontWeight: 400 }}>({stageDeals.length})</span>
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--text-tertiary)", fontWeight: 600 }}>${total.toLocaleString()}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {stageDeals.map((deal) => (
@@ -100,8 +128,28 @@ export function DealsPage() {
                       key={deal.id}
                       padding={14}
                       draggable
-                      onDragStart={() => setDragId(deal.id)}
-                      style={{ cursor: "grab" }}
+                      onDragStart={(e) => {
+                        setDragId(deal.id);
+                        e.currentTarget.style.opacity = "0.4";
+                      }}
+                      onDragEnd={(e) => {
+                        setDragId(null);
+                        setDragOverStage(null);
+                        e.currentTarget.style.opacity = "1";
+                      }}
+                      style={{
+                        cursor: "grab",
+                        borderLeft: `3px solid ${stageColor[stage]}`,
+                        transition: "transform var(--transition-base), box-shadow var(--transition-base), opacity var(--transition-fast)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 14px 28px -8px rgba(99,102,241,0.25)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "none";
+                        e.currentTarget.style.boxShadow = "var(--shadow-card)";
+                      }}
                     >
                       <div onClick={() => openEdit(deal)} style={{ cursor: "pointer" }}>
                         <div style={{ fontWeight: 700, fontSize: 13.5 }}>{deal.name}</div>
@@ -121,7 +169,15 @@ export function DealsPage() {
                   ))}
                   <button
                     onClick={() => openCreate(stage)}
-                    style={{ border: "1px dashed var(--border)", background: "transparent", borderRadius: "var(--radius-md)", padding: "10px", color: "var(--text-tertiary)", fontSize: 12.5, cursor: "pointer" }}
+                    style={{ border: "1px dashed var(--border)", background: "transparent", borderRadius: "var(--radius-md)", padding: "10px", color: "var(--text-tertiary)", fontSize: 12.5, cursor: "pointer", transition: "border-color var(--transition-fast), color var(--transition-fast)" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = stageColor[stage];
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "var(--border)";
+                      e.currentTarget.style.color = "var(--text-tertiary)";
+                    }}
                   >
                     + Add deal
                   </button>

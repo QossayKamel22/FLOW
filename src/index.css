@@ -251,6 +251,11 @@ p {
   left: 135%;
 }
 
+button:focus-visible {
+  outline: 2px solid #d4af6a;
+  outline-offset: 2px;
+}
+
 .shimmer-text {
   background: linear-gradient(90deg, var(--text-tertiary) 0%, #fff 50%, var(--text-tertiary) 100%);
   background-size: 200% auto;

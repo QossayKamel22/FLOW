@@ -1,8 +1,12 @@
+import { useEffect, useState } from "react";
 import { useCollection } from "../../hooks/useCollection";
 import { dealsService, leadsService, followupsService } from "../../services/crmServices";
 import { Card } from "../../components/ui/Card";
 import { KpiCard } from "../../components/common/KpiCard";
+import { BotOrb } from "../../components/common/BotOrb";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
+
+const donutColors = ["#6366f1", "#22d3ee", "#a855f7", "#f59e0b", "#22c55e", "#ec4899"];
 
 export function AnalyticsPage() {
   const leads = useCollection(leadsService);
@@ -32,8 +36,39 @@ export function AnalyticsPage() {
   const completedFollowups = followups.items.filter((f) => f.completed).length;
   const followupCompletion = followups.items.length ? Math.round((completedFollowups / followups.items.length) * 100) : 0;
 
-  const maxSource = Math.max(1, ...Object.values(sourceCounts));
   const maxStage = Math.max(1, ...stageCounts.map((s) => s.count));
+
+  const sourceEntries = Object.entries(sourceCounts);
+  const totalSources = sourceEntries.reduce((s, [, c]) => s + c, 0);
+  let cursor = 0;
+  const donutStops = sourceEntries.map(([source, count], i) => {
+    const start = (cursor / totalSources) * 360;
+    cursor += count;
+    const end = (cursor / totalSources) * 360;
+    return { source, count, color: donutColors[i % donutColors.length], start, end };
+  });
+  const donutGradient = totalSources
+    ? `conic-gradient(${donutStops.map((s) => `${s.color} ${s.start}deg ${s.end}deg`).join(", ")})`
+    : "var(--bg-elevated)";
+
+  const topSource = sourceEntries.length ? sourceEntries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] : null;
+  const avgDealSize = deals.items.length ? Math.round((revenue + pipelineValue) / deals.items.length) : 0;
+
+  const insight = topSource
+    ? `Your win rate is ${winRate}% with $${revenue.toLocaleString()} closed so far. Most leads come from ${topSource} — worth doubling down there. ${
+        followupCompletion >= 70
+          ? `Follow-up discipline is strong at ${followupCompletion}%.`
+          : `Follow-up completion is at ${followupCompletion}% — tightening that up could lift your win rate further.`
+      }`
+    : `Once you have a few leads and deals logged, I'll surface patterns here — like your best-performing source and where deals tend to stall.`;
+
+  const [thinking, setThinking] = useState(true);
+  useEffect(() => {
+    if (loading) return;
+    setThinking(true);
+    const t = window.setTimeout(() => setThinking(false), 900);
+    return () => window.clearTimeout(t);
+  }, [loading, insight]);
 
   return (
     <div>
@@ -45,60 +80,187 @@ export function AnalyticsPage() {
         <EmptyState title="Not enough data yet" description="Add leads and deals to see analytics here." />
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
-            <KpiCard label="Pipeline Value" value={`$${pipelineValue.toLocaleString()}`} icon="📈" />
-            <KpiCard label="Revenue Won" value={`$${revenue.toLocaleString()}`} icon="💰" />
-            <KpiCard label="Deal Win Rate" value={`${winRate}%`} icon="🏆" />
-            <KpiCard label="Lead Conversion" value={`${leadConversion}%`} icon="🎯" />
+          <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+            <KpiCard label="Pipeline Value" value={`$${pipelineValue.toLocaleString()}`} icon="📈" tone="indigo" />
+            <KpiCard label="Revenue Won" value={`$${revenue.toLocaleString()}`} icon="💰" tone="emerald" />
+            <KpiCard label="Deal Win Rate" value={`${winRate}%`} icon="🏆" tone="violet" />
+            <KpiCard label="Lead Conversion" value={`${leadConversion}%`} icon="🎯" tone="cyan" />
+          </div>
+
+          <div
+            className="animated-gradient-border"
+            style={{
+              borderRadius: "var(--radius-lg)",
+              padding: 1,
+              marginBottom: 16,
+              backgroundImage: "linear-gradient(120deg, rgba(99,102,241,0.5), rgba(34,211,238,0.3), rgba(139,92,246,0.45), rgba(99,102,241,0.5))",
+            }}
+          >
+            <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <BotOrb size={32} active={thinking} />
+                <h3 style={{ fontWeight: 800, fontSize: 15 }}>AI Insights</h3>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", background: "var(--bg-elevated)", padding: "2px 8px", borderRadius: 999, marginLeft: "auto" }}>
+                  Preview
+                </span>
+              </div>
+              {thinking ? (
+                <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "4px 0" }}>
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "var(--text-tertiary)",
+                        animation: `typingDotAnalytics 1.2s ${i * 0.15}s ease-in-out infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0, animation: "messageIn 320ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
+                  {insight}
+                </p>
+              )}
+              {!thinking && avgDealSize > 0 && (
+                <div style={{ marginTop: 12, display: "flex", gap: 8, animation: "messageIn 320ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both" }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, padding: "4px 10px", borderRadius: 999, background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>
+                    Avg deal size: ${avgDealSize.toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </Card>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <Card>
-              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14 }}>Deals by stage</h3>
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>📊</span> Deals by stage
+              </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {stageCounts.map((s) => (
                   <div key={s.stage}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
                       <span style={{ color: "var(--text-secondary)" }}>{s.stage}</span>
-                      <span>{s.count}</span>
+                      <span style={{ fontWeight: 600 }}>{s.count}</span>
                     </div>
-                    <div style={{ height: 8, background: "var(--bg-elevated)", borderRadius: 6 }}>
-                      <div style={{ height: "100%", width: `${(s.count / maxStage) * 100}%`, background: "linear-gradient(90deg, var(--accent), #06b6d4)", borderRadius: 6 }} />
+                    <div style={{ height: 8, background: "var(--bg-elevated)", borderRadius: 6, overflow: "hidden" }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${(s.count / maxStage) * 100}%`,
+                          background: "linear-gradient(90deg, var(--accent), #06b6d4)",
+                          borderRadius: 6,
+                          transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
               </div>
             </Card>
 
-            <Card>
-              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14 }}>Lead sources</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {Object.entries(sourceCounts).length === 0 ? (
-                  <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
-                ) : (
-                  Object.entries(sourceCounts).map(([source, count]) => (
-                    <div key={source}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>{source}</span>
-                        <span>{count}</span>
-                      </div>
-                      <div style={{ height: 8, background: "var(--bg-elevated)", borderRadius: 6 }}>
-                        <div style={{ height: "100%", width: `${(count / maxSource) * 100}%`, background: "linear-gradient(90deg, #7c3aed, var(--accent))", borderRadius: 6 }} />
-                      </div>
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🧭</span> Lead sources
+              </h3>
+              {sourceEntries.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
+              ) : (
+                <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+                  <div
+                    style={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: "50%",
+                      background: donutGradient,
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      animation: "popIn 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: "50%",
+                        background: "var(--bg-card)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 18, fontWeight: 800 }}>{totalSources}</div>
+                      <div style={{ fontSize: 9, color: "var(--text-tertiary)" }}>leads</div>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
+                    {donutStops.map((s) => (
+                      <div key={s.source} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--text-secondary)" }}>
+                          <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color }} />
+                          {s.source}
+                        </span>
+                        <span style={{ fontWeight: 600 }}>{s.count} · {Math.round((s.count / totalSources) * 100)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
 
-          <Card style={{ marginTop: 16 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 8 }}>Follow-up completion</h3>
-            <div style={{ fontSize: 26, fontWeight: 800 }}>{followupCompletion}%</div>
+          <Card
+            style={{ marginTop: 16, transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "none";
+              e.currentTarget.style.boxShadow = "var(--shadow-card)";
+            }}
+          >
+            <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>✅</span> Follow-up completion
+            </h3>
+            <div style={{ fontSize: 26, fontWeight: 800, animation: "valuePop 400ms cubic-bezier(0.16, 1, 0.3, 1)" }}>{followupCompletion}%</div>
             <p style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{completedFollowups} of {followups.items.length} follow-ups completed</p>
           </Card>
         </>
       )}
+
+      <style>{`
+        @keyframes typingDotAnalytics {
+          0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+      `}</style>
     </div>
   );
 }
