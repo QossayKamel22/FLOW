@@ -1,23 +1,51 @@
+<div align="center">
+
 # FLOW
 
-**AI-Powered CRM**
+**AI-Powered CRM for modern sales teams**
+
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)](#license)
 
 Smarter CRM. Better Sales.
 
+</div>
+
+---
+
 FLOW is a modern CRM for sales teams to manage leads, customers, deals, follow-ups, and calendar activities in one clean, dark-first workspace. It's built as a real, functioning product — every core CRM feature reads and writes live data through Firebase, not mock content.
+
+## Table of Contents
+
+- [Features](#features)
+- [AI Experience](#ai-experience)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Firebase](#firebase)
+- [Security](#security)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Screens](#screens)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Features
 
-- **Dashboard** — live KPIs (leads, active deals, follow-ups, pipeline value) computed from your Firestore data, with empty states when a workspace is new.
-- **Leads** — full CRUD, search, status/source filtering, lead scoring (Hot/Warm/Cold).
-- **Customers** — full CRUD, search, and a detail view with contact info and notes.
-- **Deals** — a drag-and-drop Kanban pipeline across six stages, with per-stage totals.
-- **Follow-ups** — CRUD with Overdue / Upcoming / Completed grouping and one-click complete.
-- **Calendar** — day-grouped sales activities (meetings, deadlines, follow-ups) with CRUD.
-- **AI Copilot** — a polished chat-style preview of FLOW's future AI assistant.
-- **Analytics** — win rate, revenue, lead conversion, pipeline-by-stage and lead-source breakdowns, all derived from real data.
-- **Notifications** — Firestore-backed, with read/unread state and delete.
-- **Settings** — profile, workspace info, notification preferences, theme, and account security.
+| Module | Description |
+| --- | --- |
+| **Dashboard** | Live KPIs (leads, active deals, follow-ups, pipeline value) computed from Firestore data, with empty states for new workspaces |
+| **Leads** | Full CRUD, search, status/source filtering, lead scoring (Hot/Warm/Cold) |
+| **Customers** | Full CRUD, search, and a detail view with contact info and notes |
+| **Deals** | Drag-and-drop Kanban pipeline across six stages, with per-stage totals |
+| **Follow-ups** | CRUD with Overdue / Upcoming / Completed grouping and one-click complete |
+| **Calendar** | Day-grouped sales activities (meetings, deadlines, follow-ups) with CRUD |
+| **AI Copilot** | A polished chat-style preview of FLOW's future AI assistant |
+| **Analytics** | Win rate, revenue, lead conversion, pipeline-by-stage and lead-source breakdowns, all derived from real data |
+| **Notifications** | Firestore-backed, with read/unread state and delete |
+| **Settings** | Profile, workspace info, notification preferences, theme, and account security |
 
 ## AI Experience
 
@@ -67,9 +95,11 @@ Security rules (`firestore.rules`) restrict every read/write to `request.auth.ui
 
 Firebase web config values (`VITE_FIREBASE_*`) are safe to expose client-side — they identify the project, not a secret. Actual data protection comes entirely from Firestore security rules. No service account keys, admin credentials, or AI API keys are used anywhere in this project.
 
-## Running Locally
+## Getting Started
 
 ```bash
+git clone https://github.com/QossayKamel22/FLOW.git
+cd FLOW
 npm install
 cp .env.example .env   # fill in your Firebase project config
 npm run dev
@@ -96,7 +126,19 @@ Login · Sign up · Onboarding (business info → AI setup preview → preferenc
 
 ## Roadmap
 
-- Real AI-powered insights and Copilot responses
-- Team/multi-user workspaces with roles
-- Email/calendar integrations
-- CSV import/export for leads and deals
+- [ ] Real AI-powered insights and Copilot responses
+- [ ] Team/multi-user workspaces with roles
+- [ ] Email/calendar integrations
+- [ ] CSV import/export for leads and deals
+
+## License
+
+Licensed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+Built by [Qossay Kamel](https://github.com/QossayKamel22)
+
+</div>
