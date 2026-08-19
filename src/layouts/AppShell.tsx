@@ -6,6 +6,9 @@ import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { RouteLoader } from "../components/common/RouteLoader";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
+import { useLiveNotifications } from "../hooks/useLiveNotifications";
+import { useCollection } from "../hooks/useCollection";
+import { notificationsService } from "../services/crmServices";
 import {
   IconDashboard,
   IconTarget,
@@ -36,28 +39,53 @@ const navItems: { to: string; label: string; icon: ComponentType<{ size?: number
 
 const LUXURY = "#d4af6a";
 
-function NavIcon({ Icon, active }: { Icon: ComponentType<{ size?: number }>; active: boolean }) {
+function NavIcon({ Icon, active, badge }: { Icon: ComponentType<{ size?: number }>; active: boolean; badge?: number }) {
   return (
-    <span
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: active ? "#fff" : LUXURY,
-        background: active
-          ? "rgba(255,255,255,0.16)"
-          : `linear-gradient(150deg, ${LUXURY}26, ${LUXURY}0d)`,
-        boxShadow: active
-          ? "inset 0 0 0 1px rgba(255,255,255,0.35)"
-          : `inset 0 0 0 1px ${LUXURY}4d`,
-        transition: "background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast), transform var(--transition-fast)",
-      }}
-    >
-      <Icon size={15} />
+    <span style={{ position: "relative", flexShrink: 0 }}>
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: active ? "#fff" : LUXURY,
+          background: active
+            ? "rgba(255,255,255,0.16)"
+            : `linear-gradient(150deg, ${LUXURY}26, ${LUXURY}0d)`,
+          boxShadow: active
+            ? "inset 0 0 0 1px rgba(255,255,255,0.35)"
+            : `inset 0 0 0 1px ${LUXURY}4d`,
+          transition: "background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast), transform var(--transition-fast)",
+        }}
+      >
+        <Icon size={15} />
+      </span>
+      {!!badge && (
+        <span
+          style={{
+            position: "absolute",
+            top: -3,
+            right: -3,
+            minWidth: 15,
+            height: 15,
+            padding: "0 3px",
+            borderRadius: 999,
+            background: "var(--danger)",
+            color: "#fff",
+            fontSize: 9,
+            fontWeight: 800,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 0 0 2px var(--bg-elevated)",
+            animation: "orbPulse 2s ease-in-out infinite",
+          }}
+        >
+          {badge > 9 ? "9+" : badge}
+        </span>
+      )}
     </span>
   );
 }
@@ -66,6 +94,9 @@ export function AppShell() {
   const { user, logOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { photoURL } = useProfilePhoto();
+  const { items: liveNotifications } = useLiveNotifications();
+  const { items: storedNotifications } = useCollection(notificationsService);
+  const notificationCount = liveNotifications.length + storedNotifications.filter((n) => !n.read).length;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [routeLoading, setRouteLoading] = useState(true);
   const location = useLocation();
@@ -129,7 +160,7 @@ export function AppShell() {
           >
             {({ isActive }) => (
               <>
-                <NavIcon Icon={item.icon} active={isActive} />
+                <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} />
                 {item.label}
               </>
             )}
@@ -202,7 +233,7 @@ export function AppShell() {
               >
                 {({ isActive }) => (
                   <>
-                    <NavIcon Icon={item.icon} active={isActive} />
+                    <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} />
                     {item.label}
                   </>
                 )}

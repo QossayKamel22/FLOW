@@ -70,6 +70,27 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function TypewriterText({ text, onDone }: { text: string; onDone?: () => void }) {
+  const [shown, setShown] = useState("");
+  useEffect(() => {
+    setShown("");
+    let i = 0;
+    const step = () => {
+      i += Math.max(1, Math.round(text.length / 60));
+      setShown(text.slice(0, i));
+      if (i < text.length) {
+        raf = window.setTimeout(step, 12);
+      } else {
+        onDone?.();
+      }
+    };
+    let raf = window.setTimeout(step, 12);
+    return () => window.clearTimeout(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
+  return <>{shown}</>;
+}
+
 function FeedbackButtons() {
   const [choice, setChoice] = useState<"up" | "down" | null>(null);
   const { show } = useToast();
@@ -124,6 +145,7 @@ export function CopilotPage() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [streamingIndex, setStreamingIndex] = useState<number | null>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pendingReply = useRef<number | null>(null);
 
@@ -156,7 +178,11 @@ export function CopilotPage() {
           ? contractsReply()
           : demoResponses[text] ??
             "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
-      setMessages((prev) => [...prev, { role: "assistant", text: reply, time: Date.now() }]);
+      setMessages((prev) => {
+        const next = [...prev, { role: "assistant" as const, text: reply, time: Date.now() }];
+        setStreamingIndex(next.length - 1);
+        return next;
+      });
       setTyping(false);
       pendingReply.current = null;
     }, 650);
@@ -172,6 +198,7 @@ export function CopilotPage() {
 
   function newChat() {
     setMessages([welcomeMessage()]);
+    setStreamingIndex(0);
     setInput("");
   }
 
@@ -200,6 +227,7 @@ export function CopilotPage() {
       >
         <Card
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             height: 660,
@@ -208,6 +236,20 @@ export function CopilotPage() {
             borderRadius: "calc(var(--radius-xl) - 1px)",
           }}
         >
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              opacity: 0.5,
+              backgroundImage:
+                "radial-gradient(circle, rgba(99,102,241,0.5) 1px, transparent 1.5px), radial-gradient(circle, rgba(34,211,238,0.4) 1px, transparent 1.5px), radial-gradient(circle, rgba(139,92,246,0.4) 1px, transparent 1.5px)",
+              backgroundSize: "180px 180px, 240px 240px, 300px 300px",
+              backgroundPosition: "10% 20%, 70% 60%, 40% 85%",
+              animation: "copilotParticles 30s linear infinite",
+            }}
+          />
           <div
             style={{
               display: "flex",
@@ -288,7 +330,11 @@ export function CopilotPage() {
                       boxShadow: m.role === "user" ? "0 4px 14px rgba(99,102,241,0.3)" : "none",
                     }}
                   >
-                    {m.text}
+                    {m.role === "assistant" && i === streamingIndex ? (
+                      <TypewriterText text={m.text} onDone={() => setStreamingIndex(null)} />
+                    ) : (
+                      m.text
+                    )}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, height: 14, paddingLeft: m.role === "user" ? 0 : 4 }}>
                     <span style={{ fontSize: 10.5, color: "var(--text-tertiary)" }}>{formatTime(m.time)}</span>
@@ -394,12 +440,21 @@ export function CopilotPage() {
                 background: "var(--bg-elevated)",
                 borderRadius: 999,
                 padding: 5,
+                transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--accent)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-soft)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--border)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask FLOW AI…"
+                placeholder="Ask FLOW AI anything about your workspace…"
                 style={{
                   flex: 1,
                   padding: "8px 14px",

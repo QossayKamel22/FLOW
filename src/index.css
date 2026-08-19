@@ -251,6 +251,12 @@ p {
   left: 135%;
 }
 
+@keyframes copilotParticles {
+  0% { background-position: 10% 20%, 70% 60%, 40% 85%; }
+  50% { background-position: 15% 30%, 65% 50%, 45% 75%; }
+  100% { background-position: 10% 20%, 70% 60%, 40% 85%; }
+}
+
 @keyframes dashboardDrift {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(-24px, 20px) scale(1.08); }
