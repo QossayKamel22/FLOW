@@ -2,14 +2,12 @@ export function FlowLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <img
-        src="/logo.png"
+        src="/logo.svg"
         alt="FLOW"
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 10,
+          width: 30,
+          height: 30,
           flexShrink: 0,
-          objectFit: "cover",
         }}
       />
       {!compact && (

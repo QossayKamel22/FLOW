@@ -36,8 +36,19 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </svg>
 
         <div style={{ position: "relative", zIndex: 1 }}>
-          <img src="/logo.png" alt="FLOW" style={{ width: 96, height: 96, borderRadius: 24, marginBottom: 24, boxShadow: "0 12px 40px rgba(99,102,241,0.45)" }} />
-          <div style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: -0.5 }}>FLOW</div>
+          <div style={{ position: "relative", width: 132, height: 132, marginBottom: 20 }}>
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: -20,
+                background: "radial-gradient(circle, rgba(99,102,241,0.45), transparent 70%)",
+                filter: "blur(6px)",
+              }}
+            />
+            <img src="/logo.svg" alt="FLOW" style={{ position: "relative", width: 132, height: 132 }} />
+          </div>
+          <div style={{ fontSize: 44, fontWeight: 800, color: "#fff", letterSpacing: -0.5 }}>FLOW</div>
           <div
             style={{
               fontSize: 15,
@@ -63,7 +74,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ width: "100%", maxWidth: 400 }}>
           <div className="auth-mobile-logo" style={{ display: "none", justifyContent: "center", marginBottom: 24 }}>
-            <img src="/logo.png" alt="FLOW" style={{ width: 44, height: 44, borderRadius: 12 }} />
+            <img src="/logo.svg" alt="FLOW" style={{ width: 56, height: 56 }} />
           </div>
           <div
             style={{
