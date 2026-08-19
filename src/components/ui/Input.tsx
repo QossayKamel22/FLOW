@@ -14,7 +14,8 @@ const fieldStyle = {
   color: "var(--text-primary)",
   fontSize: 14.5,
   outline: "none",
-  transition: "border-color var(--transition-fast)",
+  boxShadow: "none",
+  transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
 } as const;
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -32,8 +33,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         ref={ref}
         id={id}
         style={{ ...fieldStyle, borderColor: error ? "var(--danger)" : "var(--border)", ...style }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-        onBlur={(e) => (e.currentTarget.style.borderColor = error ? "var(--danger)" : "var(--border)")}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = "var(--accent)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-soft)";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = error ? "var(--danger)" : "var(--border)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
         {...rest}
       />
       {error && <span style={{ fontSize: 12.5, color: "var(--danger)" }}>{error}</span>}

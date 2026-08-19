@@ -2,24 +2,38 @@ import type { ReactNode } from "react";
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", background: "var(--bg)" }}>
+    <div style={{ minHeight: "100vh", display: "flex", background: "#05070f" }}>
       <div
         className="auth-brand-panel"
         style={{
-          flex: "0 0 46%",
+          flex: "0 0 48%",
           position: "relative",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "0 64px",
+          padding: "0 68px",
           background:
-            "radial-gradient(circle at 15% 20%, rgba(99,102,241,0.35), transparent 45%), radial-gradient(circle at 85% 75%, rgba(34,211,238,0.25), transparent 45%), #05070f",
+            "radial-gradient(circle at 15% 15%, rgba(99,102,241,0.4), transparent 45%), radial-gradient(circle at 85% 85%, rgba(34,211,238,0.3), transparent 45%), radial-gradient(circle at 50% 50%, rgba(139,92,246,0.15), transparent 60%), #05070f",
         }}
       >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage: "radial-gradient(circle at 30% 40%, black, transparent 75%)",
+            WebkitMaskImage: "radial-gradient(circle at 30% 40%, black, transparent 75%)",
+          }}
+        />
+
         <svg
           aria-hidden="true"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.5 }}
+          className="auth-waves"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.55 }}
           viewBox="0 0 800 1000"
           preserveAspectRatio="xMidYMid slice"
         >
@@ -29,41 +43,70 @@ export function AuthLayout({ children }: { children: ReactNode }) {
               <stop offset="100%" stopColor="#22d3ee" />
             </linearGradient>
           </defs>
-          <path d="M-50 650 Q 200 550 400 650 T 850 620" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.55" />
-          <path d="M-50 720 Q 200 630 400 720 T 850 690" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.4" />
-          <path d="M-50 790 Q 200 700 400 790 T 850 760" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.3" />
-          <path d="M-50 860 Q 200 780 400 860 T 850 830" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.2" />
+          <path d="M-50 640 Q 200 540 400 640 T 850 610" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.6" />
+          <path d="M-50 710 Q 200 620 400 710 T 850 680" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.45" />
+          <path d="M-50 780 Q 200 690 400 780 T 850 750" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.32" />
+          <path d="M-50 850 Q 200 770 400 850 T 850 820" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.2" />
+          <path d="M-50 920 Q 200 850 400 920 T 850 890" stroke="url(#wave1)" strokeWidth="1.5" fill="none" opacity="0.12" />
         </svg>
 
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "8%",
+            right: "10%",
+            width: 3,
+            height: 3,
+            borderRadius: "50%",
+            background: "#7dd3fc",
+            boxShadow: "0 0 8px 2px rgba(125,211,252,0.8)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "22%",
+            right: "22%",
+            width: 2,
+            height: 2,
+            borderRadius: "50%",
+            background: "#c4b5fd",
+            boxShadow: "0 0 6px 2px rgba(196,181,253,0.7)",
+          }}
+        />
+
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ position: "relative", width: 132, height: 132, marginBottom: 20 }}>
+          <div style={{ position: "relative", width: 176, height: 176, marginBottom: 24 }}>
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
-                inset: -20,
-                background: "radial-gradient(circle, rgba(99,102,241,0.45), transparent 70%)",
-                filter: "blur(6px)",
+                inset: -36,
+                background: "radial-gradient(circle, rgba(99,102,241,0.5), transparent 70%)",
+                filter: "blur(10px)",
               }}
             />
-            <img src="/logo.svg" alt="FLOW" style={{ position: "relative", width: 132, height: 132 }} />
+            <img src="/logo.svg" alt="FLOW" style={{ position: "relative", width: 176, height: 176, filter: "drop-shadow(0 18px 40px rgba(34,211,238,0.25))" }} />
           </div>
-          <div style={{ fontSize: 44, fontWeight: 800, color: "#fff", letterSpacing: -0.5 }}>FLOW</div>
+          <div style={{ fontSize: 52, fontWeight: 800, color: "#fff", letterSpacing: -1, lineHeight: 1 }}>FLOW</div>
           <div
             style={{
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
-              marginTop: 2,
-              marginBottom: 20,
+              marginTop: 6,
+              marginBottom: 24,
               backgroundImage: "var(--gradient-brand)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",
+              letterSpacing: 0.2,
             }}
           >
             AI-Powered CRM
           </div>
-          <div style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.85)", lineHeight: 1.4 }}>
+          <div style={{ fontSize: 21, fontWeight: 600, color: "rgba(255,255,255,0.88)", lineHeight: 1.45 }}>
             Smarter CRM.
             <br />
             Better Sales.
@@ -71,20 +114,36 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ width: "100%", maxWidth: 400 }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+          position: "relative",
+          background: "radial-gradient(circle at 70% 30%, rgba(99,102,241,0.06), transparent 55%), var(--bg)",
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: 408, animation: "fadeIn 400ms ease" }}>
           <div className="auth-mobile-logo" style={{ display: "none", justifyContent: "center", marginBottom: 24 }}>
-            <img src="/logo.svg" alt="FLOW" style={{ width: 56, height: 56 }} />
+            <img src="/logo.svg" alt="FLOW" style={{ width: 64, height: 64 }} />
           </div>
           <div
             style={{
+              position: "relative",
               background: "var(--bg-card)",
               border: "1px solid var(--border)",
               borderRadius: "var(--radius-xl)",
-              boxShadow: "var(--shadow-card)",
-              padding: 28,
+              boxShadow: "0 1px 2px rgba(0,0,0,0.4), 0 24px 60px -12px rgba(99,102,241,0.18), var(--shadow-card)",
+              padding: 32,
+              overflow: "hidden",
             }}
           >
+            <div
+              aria-hidden="true"
+              style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "var(--gradient-brand-diag)" }}
+            />
             {children}
           </div>
         </div>
@@ -94,6 +153,17 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         @media (max-width: 900px) {
           .auth-brand-panel { display: none !important; }
           .auth-mobile-logo { display: flex !important; }
+        }
+        .auth-waves path {
+          animation: authWaveDrift 16s ease-in-out infinite;
+        }
+        .auth-waves path:nth-child(2) { animation-duration: 20s; animation-delay: -3s; }
+        .auth-waves path:nth-child(3) { animation-duration: 24s; animation-delay: -6s; }
+        .auth-waves path:nth-child(4) { animation-duration: 28s; animation-delay: -9s; }
+        .auth-waves path:nth-child(5) { animation-duration: 32s; animation-delay: -12s; }
+        @keyframes authWaveDrift {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(24px); }
         }
       `}</style>
     </div>
