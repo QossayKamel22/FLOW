@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "../auth/AuthLayout";
+import { BotOrb } from "../../components/common/BotOrb";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/common/Select";
 import { Button } from "../../components/ui/Button";
@@ -67,7 +68,9 @@ export function OnboardingPage() {
 
       {step === 1 && (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ fontSize: 34, marginBottom: 14 }}>✨</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+            <BotOrb size={64} active />
+          </div>
           <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 18 }}>Setting up your AI workspace</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", maxWidth: 260, margin: "0 auto" }}>
             {aiSteps.map((label, i) => (

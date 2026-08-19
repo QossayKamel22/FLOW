@@ -1,5 +1,5 @@
 import { makeCollectionService, millis } from "./collection";
-import type { Activity, AppNotification, Customer, Deal, FollowUp, Lead } from "../types/crm";
+import type { Activity, AppNotification, Customer, Deal, FollowUp, Lead, Property } from "../types/crm";
 
 export const leadsService = makeCollectionService<Lead>("leads", (id, d) => ({
   id,
@@ -58,6 +58,22 @@ export const activitiesService = makeCollectionService<Activity>("activities", (
   date: d.date ?? "",
   time: d.time ?? "",
   type: d.type ?? "Other",
+  notes: d.notes ?? "",
+  createdAt: millis(d),
+}));
+
+export const propertiesService = makeCollectionService<Property>("properties", (id, d) => ({
+  id,
+  title: d.title ?? "",
+  address: d.address ?? "",
+  type: d.type ?? "Rent",
+  status: d.status ?? "Available",
+  price: d.price ?? 0,
+  bedrooms: d.bedrooms ?? 0,
+  area: d.area ?? 0,
+  clientName: d.clientName ?? "",
+  contractStart: d.contractStart ?? null,
+  contractEnd: d.contractEnd ?? null,
   notes: d.notes ?? "",
   createdAt: millis(d),
 }));

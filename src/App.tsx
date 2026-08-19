@@ -10,6 +10,7 @@ import { OnboardingPage } from "./features/onboarding/OnboardingPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { LeadsPage } from "./features/leads/LeadsPage";
 import { CustomersPage } from "./features/customers/CustomersPage";
+import { PropertiesPage } from "./features/properties/PropertiesPage";
 import { DealsPage } from "./features/deals/DealsPage";
 import { FollowupsPage } from "./features/followups/FollowupsPage";
 import { CalendarPage } from "./features/calendar/CalendarPage";
@@ -40,6 +41,7 @@ function App() {
                 <Route index element={<DashboardPage />} />
                 <Route path="leads" element={<LeadsPage />} />
                 <Route path="customers" element={<CustomersPage />} />
+                <Route path="properties" element={<PropertiesPage />} />
                 <Route path="deals" element={<DealsPage />} />
                 <Route path="followups" element={<FollowupsPage />} />
                 <Route path="calendar" element={<CalendarPage />} />

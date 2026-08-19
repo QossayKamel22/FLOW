@@ -5,17 +5,40 @@ import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 
 const navItems = [
-  { to: "/app", label: "Dashboard", icon: "📊", end: true },
-  { to: "/app/leads", label: "Leads", icon: "🎯" },
-  { to: "/app/customers", label: "Customers", icon: "🤝" },
-  { to: "/app/deals", label: "Deals", icon: "💼" },
-  { to: "/app/followups", label: "Follow-ups", icon: "⏰" },
-  { to: "/app/calendar", label: "Calendar", icon: "📅" },
-  { to: "/app/copilot", label: "AI Copilot", icon: "✨" },
-  { to: "/app/analytics", label: "Analytics", icon: "📈" },
-  { to: "/app/notifications", label: "Notifications", icon: "🔔" },
-  { to: "/app/settings", label: "Settings", icon: "⚙️" },
+  { to: "/app", label: "Dashboard", icon: "📊", end: true, color: "#6366f1" },
+  { to: "/app/leads", label: "Leads", icon: "🎯", color: "#f43f5e" },
+  { to: "/app/customers", label: "Customers", icon: "🤝", color: "#f59e0b" },
+  { to: "/app/properties", label: "Properties", icon: "🏠", color: "#eab308" },
+  { to: "/app/deals", label: "Deals", icon: "💼", color: "#a855f7" },
+  { to: "/app/followups", label: "Follow-ups", icon: "⏰", color: "#ec4899" },
+  { to: "/app/calendar", label: "Calendar", icon: "📅", color: "#22d3ee" },
+  { to: "/app/copilot", label: "AI Copilot", icon: "✨", color: "#8b5cf6" },
+  { to: "/app/analytics", label: "Analytics", icon: "📈", color: "#34d399" },
+  { to: "/app/notifications", label: "Notifications", icon: "🔔", color: "#fb923c" },
+  { to: "/app/settings", label: "Settings", icon: "⚙️", color: "#94a3b8" },
 ];
+
+function NavIcon({ icon, color, active }: { icon: string; color: string; active: boolean }) {
+  return (
+    <span
+      style={{
+        width: 26,
+        height: 26,
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 13.5,
+        flexShrink: 0,
+        background: active ? "rgba(255,255,255,0.22)" : `${color}22`,
+        boxShadow: active ? "inset 0 0 0 1px rgba(255,255,255,0.3)" : `inset 0 0 0 1px ${color}33`,
+        transition: "background var(--transition-fast), box-shadow var(--transition-fast)",
+      }}
+    >
+      {icon}
+    </span>
+  );
+}
 
 export function AppShell() {
   const { user, logOut } = useAuth();
@@ -56,7 +79,7 @@ export function AppShell() {
               display: "flex",
               alignItems: "center",
               gap: 10,
-              padding: "10px 12px",
+              padding: "8px 12px",
               borderRadius: "var(--radius-md)",
               fontSize: 14,
               fontWeight: 600,
@@ -72,8 +95,12 @@ export function AppShell() {
             onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(3px)")}
             onMouseLeave={(e) => (e.currentTarget.style.transform = "translateX(0)")}
           >
-            <span style={{ transition: "transform var(--transition-fast)" }}>{item.icon}</span>
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <NavIcon icon={item.icon} color={item.color} active={isActive} />
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
 
@@ -143,7 +170,7 @@ export function AppShell() {
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  padding: "10px 12px",
+                  padding: "8px 12px",
                   borderRadius: "var(--radius-md)",
                   fontSize: 14,
                   fontWeight: 600,
@@ -152,8 +179,12 @@ export function AppShell() {
                   background: isActive ? "var(--accent)" : "transparent",
                 })}
               >
-                <span>{item.icon}</span>
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <NavIcon icon={item.icon} color={item.color} active={isActive} />
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             ))}
             <button onClick={() => void logOut()} style={{ ...iconBtn, width: "100%", marginTop: 8 }}>

@@ -35,7 +35,7 @@ FLOW is a modern CRM for sales teams to manage leads, customers, deals, follow-u
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Screens](#screens)
-- [Roadmap](#roadmap)
+- [Documentation](#documentation)
 - [License](#license)
 
 ## Features
@@ -45,6 +45,7 @@ FLOW is a modern CRM for sales teams to manage leads, customers, deals, follow-u
 | **Dashboard** | Live KPIs (leads, active deals, follow-ups, pipeline value) computed from Firestore data, with empty states for new workspaces |
 | **Leads** | Full CRUD, search, status/source filtering, lead scoring (Hot/Warm/Cold) |
 | **Customers** | Full CRUD, search, and a detail view with contact info and notes |
+| **Properties** | Real-estate listings (rent/sale) with contract dates and automatic expiring/overdue reminders |
 | **Deals** | Drag-and-drop Kanban pipeline across six stages, with per-stage totals |
 | **Follow-ups** | CRUD with Overdue / Upcoming / Completed grouping and one-click complete |
 | **Calendar** | Day-grouped sales activities (meetings, deadlines, follow-ups) with CRUD |
@@ -145,6 +146,11 @@ Login · Sign up · Onboarding (business info → AI setup preview → preferenc
 
 
 
+
+## Documentation
+
+- [Software Requirements Specification](docs/SRS.md) — functional & non-functional requirements, data model, scope.
+- [Roadmap](docs/ROADMAP.md) — what's shipped and what's next, including real AI integration and real-estate depth.
 
 ## License
 

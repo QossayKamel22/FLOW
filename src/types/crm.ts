@@ -58,6 +58,23 @@ export interface Activity extends BaseDoc {
   notes: string;
 }
 
+export type PropertyType = "Rent" | "Sale";
+export type PropertyStatus = "Available" | "Rented" | "Sold" | "Under Contract";
+
+export interface Property extends BaseDoc {
+  title: string;
+  address: string;
+  type: PropertyType;
+  status: PropertyStatus;
+  price: number;
+  bedrooms: number;
+  area: number;
+  clientName: string;
+  contractStart: string | null;
+  contractEnd: string | null;
+  notes: string;
+}
+
 export interface AppNotification extends BaseDoc {
   title: string;
   message: string;

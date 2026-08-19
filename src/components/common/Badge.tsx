@@ -44,6 +44,10 @@ const statusTone: Record<string, Tone> = {
   Inactive: "neutral",
   Lead: "info",
   Negotiation: "warning",
+  Available: "success",
+  Rented: "info",
+  Sold: "accent",
+  "Under Contract": "warning",
 };
 
 export function StatusBadge({ status }: { status: string }) {

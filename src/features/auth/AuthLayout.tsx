@@ -1,8 +1,38 @@
 import type { ReactNode } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 export function AuthLayout({ children }: { children: ReactNode }) {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", background: "#05070f" }}>
+    <div style={{ minHeight: "100vh", display: "flex", background: "#05070f", position: "relative" }}>
+      <button
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        style={{
+          position: "fixed",
+          top: 20,
+          right: 20,
+          zIndex: 10,
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: "1px solid var(--border)",
+          background: "var(--bg-card)",
+          color: "var(--text-primary)",
+          cursor: "pointer",
+          fontSize: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "var(--shadow-card)",
+          transition: "transform var(--transition-fast)",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.08) rotate(15deg)")}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1) rotate(0deg)")}
+      >
+        {theme === "dark" ? "☀️" : "🌙"}
+      </button>
       <div
         className="auth-brand-panel"
         style={{

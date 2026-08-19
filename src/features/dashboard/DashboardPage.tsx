@@ -1,11 +1,13 @@
 import { useAuth } from "../../context/AuthContext";
 import { useCollection } from "../../hooks/useCollection";
-import { leadsService, dealsService, followupsService } from "../../services/crmServices";
+import { leadsService, dealsService, followupsService, propertiesService } from "../../services/crmServices";
 import { KpiCard } from "../../components/common/KpiCard";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { BotOrb } from "../../components/common/BotOrb";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
 import { StatusBadge } from "../../components/common/Badge";
+import { expiringContracts, daysUntil } from "../../lib/contracts";
 import { Link } from "react-router-dom";
 
 export function DashboardPage() {
@@ -13,6 +15,7 @@ export function DashboardPage() {
   const leads = useCollection(leadsService);
   const deals = useCollection(dealsService);
   const followups = useCollection(followupsService);
+  const properties = useCollection(propertiesService);
 
   const firstName = user?.displayName?.split(" ")[0] || "there";
   const loading = leads.loading || deals.loading || followups.loading;
@@ -20,7 +23,8 @@ export function DashboardPage() {
   const activeDeals = deals.items.filter((d) => d.stage !== "Won" && d.stage !== "Lost");
   const pipelineValue = activeDeals.reduce((sum, d) => sum + (d.value || 0), 0);
   const openFollowups = followups.items.filter((f) => !f.completed);
-  const hasAnyData = leads.items.length > 0 || deals.items.length > 0 || followups.items.length > 0;
+  const contractsDue = expiringContracts(properties.items);
+  const hasAnyData = leads.items.length > 0 || deals.items.length > 0 || followups.items.length > 0 || properties.items.length > 0;
 
   return (
     <div>
@@ -62,22 +66,7 @@ export function DashboardPage() {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: "var(--gradient-brand-diag)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 17,
-                        boxShadow: "0 4px 14px rgba(99,102,241,0.4)",
-                        animation: "orbPulse 2.4s ease-in-out infinite",
-                      }}
-                    >
-                      ✨
-                    </div>
+                    <BotOrb size={36} />
                     <h3 style={{ fontWeight: 800, fontSize: 16 }}>AI Briefing</h3>
                   </div>
                   <span style={{ fontSize: 11, color: "var(--text-tertiary)", background: "var(--bg-elevated)", padding: "2px 8px", borderRadius: 999 }}>
@@ -88,9 +77,17 @@ export function DashboardPage() {
                   Your sales pipeline needs attention.
                 </p>
                 <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-secondary)", fontSize: 13.5, display: "flex", flexDirection: "column", gap: 6 }}>
-                  <li>3 high-value deals are losing momentum.</li>
                   <li>{openFollowups.length} follow-ups are ready for attention.</li>
                   <li>Expected revenue this week: ${Math.round(pipelineValue * 0.2).toLocaleString()}.</li>
+                  {contractsDue.length > 0 && (
+                    <li style={{ color: "var(--warning)", fontWeight: 600 }}>
+                      {contractsDue.length} lease/sale contract{contractsDue.length > 1 ? "s" : ""} need attention
+                      {(() => {
+                        const d = daysUntil(contractsDue[0].contractEnd);
+                        return d !== null ? ` — next in ${d < 0 ? "overdue" : `${d}d`}` : "";
+                      })()}
+                    </li>
+                  )}
                 </ul>
                 <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                   <Link to="/app/copilot" style={{ textDecoration: "none" }}>
