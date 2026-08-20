@@ -5,6 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { RouteLoader } from "../components/common/RouteLoader";
+import { CommandPalette } from "../components/common/CommandPalette";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useLiveNotifications } from "../hooks/useLiveNotifications";
 import { useCollection } from "../hooks/useCollection";
@@ -110,6 +111,7 @@ export function AppShell() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
       {routeLoading && <RouteLoader />}
+      <CommandPalette />
       {/* Desktop sidebar */}
       <aside
         className="scrollbar-thin"
@@ -132,6 +134,32 @@ export function AppShell() {
         <div style={{ padding: "6px 10px 20px" }}>
           <FlowLogo />
         </div>
+        <button
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 10px",
+            marginBottom: 14,
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border)",
+            background: "var(--bg-card)",
+            color: "var(--text-tertiary)",
+            fontSize: 12.5,
+            cursor: "pointer",
+            transition: "border-color var(--transition-fast)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-strong)")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          Search
+          <kbd style={{ marginLeft: "auto", fontSize: 10.5, border: "1px solid var(--border)", borderRadius: 4, padding: "1px 5px" }}>⌘K</kbd>
+        </button>
         {navItems.map((item, i) => (
           <NavLink
             key={item.to}

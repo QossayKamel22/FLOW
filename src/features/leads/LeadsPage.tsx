@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../hooks/useCollection";
 import { leadsService } from "../../services/crmServices";
 import type { Lead, LeadSource, LeadStatus } from "../../types/crm";
@@ -51,6 +52,7 @@ function MiniStat({ label, value, tone }: { label: string; value: number | strin
 export function LeadsPage() {
   const { items, loading, error, uid } = useCollection(leadsService);
   const { show } = useToast();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [modalOpen, setModalOpen] = useState(false);
@@ -160,9 +162,11 @@ export function LeadsPage() {
                     borderBottom: "1px solid var(--border)",
                     background: hoveredRow === lead.id ? "var(--bg-elevated)" : "transparent",
                     transition: "background var(--transition-fast)",
+                    cursor: "pointer",
                   }}
                   onMouseEnter={() => setHoveredRow(lead.id)}
                   onMouseLeave={() => setHoveredRow((h) => (h === lead.id ? null : h))}
+                  onClick={() => navigate(`/app/leads/${lead.id}`)}
                 >
                   <td style={{ padding: "10px 16px", fontWeight: 600 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -178,7 +182,7 @@ export function LeadsPage() {
                   <td style={{ padding: "12px 16px" }}><ScoreBadge score={lead.score} /></td>
                   <td style={{ padding: "12px 16px", color: "var(--text-secondary)" }}>{lead.source}</td>
                   <td style={{ padding: "12px 16px", color: "var(--text-secondary)" }}>{lead.nextAction || "—"}</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+                  <td style={{ padding: "12px 16px", textAlign: "right", whiteSpace: "nowrap" }} onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="ghost" onClick={() => openEdit(lead)}>Edit</Button>
                     <Button size="sm" variant="danger" onClick={() => setDeleteTarget(lead)}>Delete</Button>
                   </td>

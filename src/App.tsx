@@ -9,6 +9,7 @@ import { SignupPage } from "./features/auth/SignupPage";
 import { OnboardingPage } from "./features/onboarding/OnboardingPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { LeadsPage } from "./features/leads/LeadsPage";
+import { LeadDetailPage } from "./features/leads/LeadDetailPage";
 import { CustomersPage } from "./features/customers/CustomersPage";
 import { PropertiesPage } from "./features/properties/PropertiesPage";
 import { DealsPage } from "./features/deals/DealsPage";
@@ -40,6 +41,7 @@ function App() {
               >
                 <Route index element={<DashboardPage />} />
                 <Route path="leads" element={<LeadsPage />} />
+                <Route path="leads/:id" element={<LeadDetailPage />} />
                 <Route path="customers" element={<CustomersPage />} />
                 <Route path="properties" element={<PropertiesPage />} />
                 <Route path="deals" element={<DealsPage />} />
