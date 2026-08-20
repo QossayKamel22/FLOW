@@ -3,27 +3,16 @@ import { Card } from "../../components/ui/Card";
 import { SectionHeader } from "../../components/common/States";
 import { BotOrb } from "../../components/common/BotOrb";
 import { useCollection } from "../../hooks/useCollection";
-import { propertiesService } from "../../services/crmServices";
+import { propertiesService, leadsService, dealsService, followupsService } from "../../services/crmServices";
 import { expiringContracts, daysUntil } from "../../lib/contracts";
 import { useToast } from "../../context/ToastContext";
 
 const suggestedPrompts = [
+  { icon: "☀️", text: "Give me my daily digest" },
   { icon: "🎯", text: "Which leads should I contact today?" },
   { icon: "💼", text: "Which deals need attention?" },
   { icon: "🏠", text: "Which contracts are expiring soon?" },
-  { icon: "⚡", text: "What should I prioritize?" },
 ];
-
-const demoResponses: Record<string, string> = {
-  "Which leads should I contact today?":
-    "Based on your pipeline, 4 leads haven't been contacted in over a week. Prioritize hot-scored leads first — they're most likely to convert.",
-  "Which deals need attention?":
-    "3 deals in Negotiation have passed their expected close date. A quick check-in call could help re-accelerate them.",
-  "What should I prioritize?":
-    "Focus on overdue follow-ups first, then move qualified leads into Proposal stage — that's where most of your pipeline value is currently sitting.",
-  "Show my highest-value opportunities.":
-    "Your top opportunities are concentrated in the Proposal and Negotiation stages. Consider allocating more time there this week.",
-};
 
 interface Message {
   role: "user" | "assistant";
@@ -141,6 +130,9 @@ function FeedbackButtons() {
 
 export function CopilotPage() {
   const { items: properties } = useCollection(propertiesService);
+  const { items: leads } = useCollection(leadsService);
+  const { items: deals } = useCollection(dealsService);
+  const { items: followups } = useCollection(followupsService);
   const [messages, setMessages] = useState<Message[]>([welcomeMessage()]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -150,6 +142,18 @@ export function CopilotPage() {
   const pendingReply = useRef<number | null>(null);
 
   const contractsDue = useMemo(() => expiringContracts(properties), [properties]);
+  const overdueFollowups = useMemo(
+    () => followups.filter((f) => !f.completed && f.date && new Date(f.date) < new Date(new Date().toDateString())),
+    [followups]
+  );
+  const staleLeads = useMemo(
+    () => leads.filter((l) => !["Won", "Lost"].includes(l.status)).sort((a, b) => b.score - a.score),
+    [leads]
+  );
+  const overdueDeals = useMemo(
+    () => deals.filter((d) => d.stage !== "Won" && d.stage !== "Lost" && d.expectedClose && new Date(d.expectedClose) < new Date(new Date().toDateString())),
+    [deals]
+  );
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -167,17 +171,42 @@ export function CopilotPage() {
     return `You have ${contractsDue.length} contract${contractsDue.length > 1 ? "s" : ""} needing attention:\n${lines.join("\n")}`;
   }
 
+  function leadsReply(): string {
+    const top = staleLeads.slice(0, 5);
+    if (top.length === 0) return "No open leads right now — your pipeline is clear. Nice work staying on top of it.";
+    const lines = top.map((l) => `• ${l.name}${l.company ? ` (${l.company})` : ""} — score ${l.score}, ${l.status}`);
+    return `Here's who to prioritize, ranked by score:\n${lines.join("\n")}`;
+  }
+
+  function dealsReply(): string {
+    if (overdueDeals.length === 0) return "No deals have slipped past their expected close date — your pipeline is on track.";
+    const lines = overdueDeals.slice(0, 5).map((d) => `• ${d.name}${d.company ? ` (${d.company})` : ""} — $${d.value.toLocaleString()}, was due ${d.expectedClose}`);
+    return `${overdueDeals.length} deal${overdueDeals.length > 1 ? "s have" : " has"} passed its expected close date:\n${lines.join("\n")}\nA quick check-in could help re-accelerate ${overdueDeals.length > 1 ? "them" : "it"}.`;
+  }
+
+  function dailyDigest(): string {
+    const parts: string[] = [];
+    parts.push(`Here's your day at a glance:`);
+    if (overdueFollowups.length > 0) parts.push(`⏰ ${overdueFollowups.length} overdue follow-up${overdueFollowups.length > 1 ? "s" : ""} — "${overdueFollowups[0].title}" is the oldest.`);
+    if (staleLeads[0]) parts.push(`🎯 Your top lead is ${staleLeads[0].name} (score ${staleLeads[0].score}) — reach out first.`);
+    if (overdueDeals.length > 0) parts.push(`💼 ${overdueDeals.length} deal${overdueDeals.length > 1 ? "s" : ""} past close date, worth $${overdueDeals.reduce((s, d) => s + d.value, 0).toLocaleString()} combined.`);
+    if (contractsDue.length > 0) parts.push(`🏠 ${contractsDue.length} property contract${contractsDue.length > 1 ? "s" : ""} need attention this month.`);
+    if (parts.length === 1) parts.push("Everything's calm — no overdue items, no urgent leads. Good day to prospect for new business.");
+    return parts.join("\n");
+  }
+
   function send(text: string) {
     if (!text.trim() || typing) return;
     setMessages((prev) => [...prev, { role: "user", text, time: Date.now() }]);
     setInput("");
     setTyping(true);
     pendingReply.current = window.setTimeout(() => {
-      const reply =
-        text === "Which contracts are expiring soon?"
-          ? contractsReply()
-          : demoResponses[text] ??
-            "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
+      let reply: string;
+      if (text === "Which contracts are expiring soon?") reply = contractsReply();
+      else if (text === "Which leads should I contact today?") reply = leadsReply();
+      else if (text === "Which deals need attention?") reply = dealsReply();
+      else if (text === "Give me my daily digest") reply = dailyDigest();
+      else reply = "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
       setMessages((prev) => {
         const next = [...prev, { role: "assistant" as const, text: reply, time: Date.now() }];
         setStreamingIndex(next.length - 1);

@@ -47,14 +47,27 @@ export function OnboardingPage() {
 
   return (
     <AuthLayout>
-      <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-tertiary)" }}>Step {step + 1} of 4</span>
+      </div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i <= step ? "var(--accent)" : "var(--border)" }} />
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: "var(--border)", overflow: "hidden" }}>
+            <div
+              style={{
+                height: "100%",
+                width: i <= step ? "100%" : "0%",
+                background: "var(--gradient-brand-diag)",
+                borderRadius: 4,
+                transition: "width 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          </div>
         ))}
       </div>
 
       {step === 0 && (
-        <div>
+        <div key={step} style={{ animation: "fadeIn 350ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
             Hi {user?.displayName?.split(" ")[0] || "there"}! 👋
           </h2>
@@ -71,7 +84,7 @@ export function OnboardingPage() {
       )}
 
       {step === 1 && (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
+        <div key={step} style={{ textAlign: "center", padding: "20px 0", animation: "fadeIn 350ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
             <BotOrb size={64} active />
           </div>
@@ -79,7 +92,27 @@ export function OnboardingPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", maxWidth: 260, margin: "0 auto" }}>
             {aiSteps.map((label, i) => (
               <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: i <= aiIndex ? "var(--text-primary)" : "var(--text-tertiary)" }}>
-                <span>{i < aiIndex ? "✅" : i === aiIndex ? "⏳" : "◯"}</span>
+                <span
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: i < aiIndex ? "var(--success)" : i === aiIndex ? "var(--accent-soft)" : "transparent",
+                    border: i === aiIndex ? "none" : `1.5px solid ${i < aiIndex ? "var(--success)" : "var(--border-strong)"}`,
+                  }}
+                >
+                  {i < aiIndex ? (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "popIn 200ms ease" }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : i === aiIndex ? (
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--accent)", animation: "orbPulse 1s ease-in-out infinite" }} />
+                  ) : null}
+                </span>
                 {label}
               </div>
             ))}
@@ -94,7 +127,7 @@ export function OnboardingPage() {
       )}
 
       {step === 2 && (
-        <div>
+        <div key={step} style={{ animation: "fadeIn 350ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>Preferences</h2>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 20 }}>
             You can change these anytime in Settings.
@@ -112,8 +145,8 @@ export function OnboardingPage() {
       )}
 
       {step === 3 && (
-        <div style={{ textAlign: "center", padding: "12px 0" }}>
-          <div style={{ fontSize: 34, marginBottom: 14 }}>🎉</div>
+        <div key={step} style={{ textAlign: "center", padding: "12px 0", animation: "fadeIn 350ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
+          <div style={{ fontSize: 34, marginBottom: 14, animation: "popIn 500ms cubic-bezier(0.16, 1, 0.3, 1)" }}>🎉</div>
           <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>You're all set, {business || "there"}!</h2>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 20 }}>
             Your FLOW workspace is ready. Let's start closing deals.
