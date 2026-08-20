@@ -36,7 +36,11 @@ export function OnboardingPage() {
 
   async function finish() {
     if (user) {
-      await savePreferences(user.uid, { displayName: user.displayName || "" }).catch(() => undefined);
+      await savePreferences(user.uid, {
+        displayName: user.displayName || "",
+        businessName: business,
+        industry,
+      }).catch(() => undefined);
     }
     navigate("/app");
   }
