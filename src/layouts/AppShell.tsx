@@ -208,7 +208,7 @@ export function AppShell() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <button onClick={toggleTheme} style={iconBtn}>{theme === "dark" ? "☀️" : "🌙"}</button>
+            <button onClick={toggleTheme} style={iconBtn} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>{theme === "dark" ? "☀️" : "🌙"}</button>
             <button onClick={() => void logOut()} style={{ ...iconBtn, flex: 1 }}>Log out</button>
           </div>
           <div style={{ textAlign: "center", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 14, letterSpacing: 0.2 }}>

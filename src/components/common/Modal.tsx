@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -10,6 +10,47 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, children, width = 520 }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    const panel = panelRef.current;
+    const focusable = panel?.querySelector<HTMLElement>(
+      'input, textarea, select, button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+    );
+    (focusable ?? panel)?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !panel) return;
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>('input, textarea, select, button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => el.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previouslyFocused.current?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return createPortal(
@@ -29,6 +70,11 @@ export function Modal({ open, onClose, title, children, width = 520 }: ModalProp
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
@@ -41,10 +87,11 @@ export function Modal({ open, onClose, title, children, width = 520 }: ModalProp
           boxShadow: "var(--shadow-card)",
           padding: 24,
           animation: "popIn 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+          outline: "none",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h3 style={{ fontSize: 17, fontWeight: 700 }}>{title}</h3>
+          <h3 id="modal-title" style={{ fontSize: 17, fontWeight: 700 }}>{title}</h3>
           <button
             onClick={onClose}
             style={{
@@ -55,7 +102,7 @@ export function Modal({ open, onClose, title, children, width = 520 }: ModalProp
               cursor: "pointer",
               lineHeight: 1,
             }}
-            aria-label="Close"
+            aria-label="Close dialog"
           >
             ✕
           </button>
