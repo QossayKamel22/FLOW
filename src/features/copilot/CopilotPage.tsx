@@ -129,10 +129,11 @@ function FeedbackButtons() {
 }
 
 export function CopilotPage() {
-  const { items: properties } = useCollection(propertiesService);
-  const { items: leads } = useCollection(leadsService);
-  const { items: deals } = useCollection(dealsService);
-  const { items: followups } = useCollection(followupsService);
+  const { items: properties, loading: propertiesLoading } = useCollection(propertiesService);
+  const { items: leads, loading: leadsLoading } = useCollection(leadsService);
+  const { items: deals, loading: dealsLoading } = useCollection(dealsService);
+  const { items: followups, loading: followupsLoading } = useCollection(followupsService);
+  const dataLoading = propertiesLoading || leadsLoading || dealsLoading || followupsLoading;
   const [messages, setMessages] = useState<Message[]>([welcomeMessage()]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -307,7 +308,7 @@ export function CopilotPage() {
                     animation: "orbPulse 2s ease-in-out infinite",
                   }}
                 />
-                <span className={typing ? "shimmer-text" : undefined}>{typing ? "Thinking…" : "Ready to help"}</span>
+                <span className={typing ? "shimmer-text" : undefined}>{typing ? "Thinking…" : dataLoading ? "Loading your workspace data…" : "Ready to help"}</span>
               </div>
             </div>
             <button
@@ -424,7 +425,7 @@ export function CopilotPage() {
                 <button
                   key={p.text}
                   onClick={() => send(p.text)}
-                  disabled={typing}
+                  disabled={typing || dataLoading}
                   style={{
                     fontSize: 12,
                     padding: "6px 12px",
@@ -432,8 +433,8 @@ export function CopilotPage() {
                     border: "1px solid var(--border)",
                     background: "var(--bg-elevated)",
                     color: "var(--text-secondary)",
-                    cursor: typing ? "default" : "pointer",
-                    opacity: typing ? 0.5 : 1,
+                    cursor: typing || dataLoading ? "default" : "pointer",
+                    opacity: typing || dataLoading ? 0.5 : 1,
                     transform: "scale(1)",
                     display: "inline-flex",
                     alignItems: "center",
@@ -483,7 +484,8 @@ export function CopilotPage() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask FLOW AI anything about your workspace…"
+                disabled={dataLoading}
+                placeholder={dataLoading ? "Loading your workspace data…" : "Ask FLOW AI anything about your workspace…"}
                 style={{
                   flex: 1,
                   padding: "8px 14px",
@@ -496,7 +498,7 @@ export function CopilotPage() {
               />
               <button
                 type="submit"
-                disabled={typing || !input.trim()}
+                disabled={typing || dataLoading || !input.trim()}
                 aria-label="Send"
                 style={{
                   width: 36,
