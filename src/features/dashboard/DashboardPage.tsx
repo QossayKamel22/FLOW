@@ -123,7 +123,15 @@ export function DashboardPage() {
           animation: "dashboardDrift 15s ease-in-out infinite reverse",
         }}
       />
-      <SectionHeader title={`Good morning, ${firstName} 👋`} subtitle="Here's what's happening with your sales today." />
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <SectionHeader title={`Good morning, ${firstName} 👋`} subtitle="Here's what's happening with your sales today." />
+        {!loading && hasAnyData && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 999, border: "1px solid var(--border)", background: "var(--bg-card)", marginTop: 4 }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--success)", animation: "orbPulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-tertiary)" }}>Live data</span>
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <LoadingState rows={4} />
@@ -402,7 +410,7 @@ export function DashboardPage() {
               {leads.items.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {leads.items.slice(0, 5).map((l) => (
                     <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/Card";
 
 const tones = {
@@ -6,6 +7,53 @@ const tones = {
   violet: "linear-gradient(135deg, #a855f7, #7c3aed)",
   emerald: "linear-gradient(135deg, #34d399, #059669)",
 } as const;
+
+function parseValue(value: string): { prefix: string; num: number; suffix: string } | null {
+  const match = value.match(/^([^\d-]*)(-?[\d,]+\.?\d*)(.*)$/);
+  if (!match) return null;
+  const [, prefix, numStr, suffix] = match;
+  const num = Number(numStr.replace(/,/g, ""));
+  if (Number.isNaN(num)) return null;
+  return { prefix, num, suffix };
+}
+
+function useCountUp(target: number) {
+  const [display, setDisplay] = useState(target);
+  const prevRef = useRef(target);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = target;
+    if (from === to) return;
+    const start = performance.now();
+    const duration = 650;
+    let raf: number;
+    function tick(now: number) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else prevRef.current = to;
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  return display;
+}
+
+function AnimatedValue({ value }: { value: string }) {
+  const parsed = parseValue(value);
+  const display = useCountUp(parsed?.num ?? 0);
+  if (!parsed) return <>{value}</>;
+  return (
+    <>
+      {parsed.prefix}
+      {display.toLocaleString()}
+      {parsed.suffix}
+    </>
+  );
+}
 
 export function KpiCard({
   label,
@@ -56,7 +104,9 @@ export function KpiCard({
           {icon}
         </span>
       </div>
-      <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: -0.5, animation: "valuePop 380ms cubic-bezier(0.16, 1, 0.3, 1)", transformOrigin: "left center" }}>{value}</div>
+      <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: -0.5, animation: "valuePop 380ms cubic-bezier(0.16, 1, 0.3, 1)", transformOrigin: "left center" }}>
+        <AnimatedValue value={value} />
+      </div>
       {trend && <div style={{ fontSize: 12.5, color: "var(--success)", fontWeight: 600 }}>{trend}</div>}
     </Card>
   );
