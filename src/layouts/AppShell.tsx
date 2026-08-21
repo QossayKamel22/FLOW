@@ -1,7 +1,8 @@
-import { useEffect, useState, type CSSProperties, type ComponentType } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { PhotoLightbox } from "../components/common/PhotoLightbox";
@@ -41,7 +42,7 @@ const navItems: { to: string; label: string; icon: ComponentType<{ size?: number
 
 const LUXURY = "#d4af6a";
 
-function NavIcon({ Icon, active, badge }: { Icon: ComponentType<{ size?: number }>; active: boolean; badge?: number }) {
+function NavIcon({ Icon, active, badge, ping }: { Icon: ComponentType<{ size?: number }>; active: boolean; badge?: number; ping?: boolean }) {
   return (
     <span style={{ position: "relative", flexShrink: 0 }}>
       <span
@@ -60,6 +61,7 @@ function NavIcon({ Icon, active, badge }: { Icon: ComponentType<{ size?: number 
             ? "inset 0 0 0 1px rgba(255,255,255,0.35)"
             : `inset 0 0 0 1px ${LUXURY}4d`,
           transition: "background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast), transform var(--transition-fast)",
+          animation: ping ? "bellRing 600ms ease-in-out 2" : "none",
         }}
       >
         <Icon size={15} />
@@ -102,13 +104,31 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [routeLoading, setRouteLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [bellPing, setBellPing] = useState(false);
   const location = useLocation();
+  const { show } = useToast();
+  const seenLiveIds = useRef<Set<string> | null>(null);
 
   useEffect(() => {
     setRouteLoading(true);
     const t = window.setTimeout(() => setRouteLoading(false), 250);
     return () => window.clearTimeout(t);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const currentIds = new Set(liveNotifications.map((n) => n.id));
+    if (seenLiveIds.current === null) {
+      seenLiveIds.current = currentIds;
+      return;
+    }
+    const fresh = liveNotifications.filter((n) => !seenLiveIds.current!.has(n.id));
+    if (fresh.length > 0) {
+      for (const n of fresh.slice(0, 3)) show(n.title, n.severity === "danger" ? "error" : "info");
+      setBellPing(true);
+      window.setTimeout(() => setBellPing(false), 1200);
+    }
+    seenLiveIds.current = currentIds;
+  }, [liveNotifications, show]);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
@@ -190,7 +210,7 @@ export function AppShell() {
           >
             {({ isActive }) => (
               <>
-                <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} />
+                <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} ping={item.to === "/app/notifications" ? bellPing : undefined} />
                 {item.label}
               </>
             )}
@@ -263,7 +283,7 @@ export function AppShell() {
               >
                 {({ isActive }) => (
                   <>
-                    <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} />
+                    <NavIcon Icon={item.icon} active={isActive} badge={item.to === "/app/notifications" ? notificationCount : undefined} ping={item.to === "/app/notifications" ? bellPing : undefined} />
                     {item.label}
                   </>
                 )}

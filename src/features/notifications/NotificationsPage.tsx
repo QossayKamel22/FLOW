@@ -82,6 +82,19 @@ export function NotificationsPage() {
     return filter === "unread" ? all.filter((n) => !n.read) : all;
   }, [liveItems, storedItems, filter]);
 
+  const groupedFeed = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayMs = todayStart.getTime();
+    const today: FeedItem[] = [];
+    const earlier: FeedItem[] = [];
+    for (const n of feed) {
+      if (n.live || n.createdAt >= todayMs) today.push(n);
+      else earlier.push(n);
+    }
+    return { Today: today, Earlier: earlier };
+  }, [feed]);
+
   const unreadCount = [...liveItems, ...storedItems].filter((n) => !n.read).length;
   const loadingAny = loading || liveLoading;
 
@@ -113,13 +126,21 @@ export function NotificationsPage() {
 
   return (
     <div>
-      <SectionHeader
-        title="Notifications"
-        subtitle={unreadCount ? `${unreadCount} unread` : "You're all caught up."}
-        action={unreadCount > 0 ? <Button variant="secondary" size="sm" onClick={markAllRead}>Mark all as read</Button> : undefined}
-      />
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <SectionHeader
+          title="Notifications"
+          subtitle={unreadCount ? `${unreadCount} unread` : "You're all caught up."}
+        />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 999, border: "1px solid var(--border)", background: "var(--bg-card)" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--success)", animation: "orbPulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-tertiary)" }}>Live</span>
+          </div>
+          {unreadCount > 0 && <Button variant="secondary" size="sm" onClick={markAllRead}>Mark all as read</Button>}
+        </div>
+      </div>
 
-      <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 6, margin: "16px 0" }}>
         {(["all", "unread"] as const).map((f) => (
           <button
             key={f}
@@ -157,8 +178,17 @@ export function NotificationsPage() {
           description="Follow-up reminders, contract alerts, and hot leads will appear here automatically."
         />
       ) : (
-        <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {feed.map((n) => {
+        <>
+          {(["Today", "Earlier"] as const).map((group) => {
+            const groupItems = groupedFeed[group];
+            if (groupItems.length === 0) return null;
+            return (
+              <div key={group} style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                  {group}
+                </div>
+                <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {groupItems.map((n) => {
             const Icon = typeIconComponent[n.type] ?? IconBell;
             const left = (
               <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
@@ -225,8 +255,12 @@ export function NotificationsPage() {
                 </div>
               </Card>
             );
+                  })}
+                </div>
+              </div>
+            );
           })}
-        </div>
+        </>
       )}
     </div>
   );
