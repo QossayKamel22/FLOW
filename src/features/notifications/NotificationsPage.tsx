@@ -100,6 +100,13 @@ export function NotificationsPage() {
   }
 
   async function markAllRead() {
+    if (liveItems.length > 0) {
+      setDismissed((prev) => {
+        const next = new Set(prev);
+        for (const item of liveItems) next.add(item.id);
+        return next;
+      });
+    }
     if (!uid) return;
     await Promise.all(items.filter((n) => !n.read).map((n) => notificationsService.update(uid, n.id, { read: true })));
   }
