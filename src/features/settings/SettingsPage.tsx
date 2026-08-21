@@ -6,6 +6,7 @@ import { auth } from "../../lib/firebase";
 import { getPreferences, savePreferences, type UserPreferences } from "../../services/userService";
 import { useProfilePhoto, fileToSquareDataUrl } from "../../hooks/useProfilePhoto";
 import { ProfileAvatar } from "../../components/common/ProfileAvatar";
+import { Switch } from "../../components/common/Switch";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -157,23 +158,75 @@ export function SettingsPage() {
 
         <Card style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }} onMouseEnter={(e) => hoverLift(e, true)} onMouseLeave={(e) => hoverLift(e, false)}>
           <CardHeading icon={IconBell} color="#f59e0b">Notifications</CardHeading>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 13.5, color: "var(--text-secondary)" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <input type="checkbox" checked={prefs?.emailNotifications ?? true} onChange={(e) => save({ emailNotifications: e.target.checked })} />
-              Email notifications for follow-ups
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <input type="checkbox" checked={prefs?.dailyBriefing ?? true} onChange={(e) => save({ dailyBriefing: e.target.checked })} />
-              Daily AI briefing
-            </label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, fontSize: 13.5, color: "var(--text-secondary)" }}>
+            <Switch label="Email notifications for follow-ups" checked={prefs?.emailNotifications ?? true} onChange={(v) => save({ emailNotifications: v })} />
+            <Switch label="Daily AI briefing" checked={prefs?.dailyBriefing ?? true} onChange={(v) => save({ dailyBriefing: v })} />
           </div>
         </Card>
 
         <Card style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }} onMouseEnter={(e) => hoverLift(e, true)} onMouseLeave={(e) => hoverLift(e, false)}>
           <CardHeading icon={IconSettings} color="#22d3ee">Appearance</CardHeading>
-          <div style={{ display: "flex", gap: 10 }}>
-            <Button variant={theme === "light" ? "primary" : "secondary"} size="sm" onClick={() => setTheme("light")}>☀️ Light</Button>
-            <Button variant={theme === "dark" ? "primary" : "secondary"} size="sm" onClick={() => setTheme("dark")}>🌙 Dark</Button>
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              width: 200,
+              padding: 3,
+              borderRadius: 999,
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 3,
+                bottom: 3,
+                left: theme === "light" ? 3 : "50%",
+                width: "calc(50% - 3px)",
+                borderRadius: 999,
+                background: "var(--gradient-brand-diag)",
+                boxShadow: "0 2px 8px rgba(99,102,241,0.35)",
+                transition: "left var(--transition-base)",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              style={{
+                position: "relative",
+                flex: 1,
+                padding: "7px 0",
+                border: "none",
+                background: "transparent",
+                color: theme === "light" ? "#fff" : "var(--text-secondary)",
+                fontWeight: 700,
+                fontSize: 12.5,
+                cursor: "pointer",
+                transition: "color var(--transition-base)",
+              }}
+            >
+              ☀️ Light
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              style={{
+                position: "relative",
+                flex: 1,
+                padding: "7px 0",
+                border: "none",
+                background: "transparent",
+                color: theme === "dark" ? "#fff" : "var(--text-secondary)",
+                fontWeight: 700,
+                fontSize: 12.5,
+                cursor: "pointer",
+                transition: "color var(--transition-base)",
+              }}
+            >
+              🌙 Dark
+            </button>
           </div>
         </Card>
 
