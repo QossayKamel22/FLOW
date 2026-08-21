@@ -15,8 +15,11 @@ const DashboardPage = lazy(() => import("./features/dashboard/DashboardPage").th
 const LeadsPage = lazy(() => import("./features/leads/LeadsPage").then((m) => ({ default: m.LeadsPage })));
 const LeadDetailPage = lazy(() => import("./features/leads/LeadDetailPage").then((m) => ({ default: m.LeadDetailPage })));
 const CustomersPage = lazy(() => import("./features/customers/CustomersPage").then((m) => ({ default: m.CustomersPage })));
+const CustomerDetailPage = lazy(() => import("./features/customers/CustomerDetailPage").then((m) => ({ default: m.CustomerDetailPage })));
 const PropertiesPage = lazy(() => import("./features/properties/PropertiesPage").then((m) => ({ default: m.PropertiesPage })));
+const PropertyDetailPage = lazy(() => import("./features/properties/PropertyDetailPage").then((m) => ({ default: m.PropertyDetailPage })));
 const DealsPage = lazy(() => import("./features/deals/DealsPage").then((m) => ({ default: m.DealsPage })));
+const DealDetailPage = lazy(() => import("./features/deals/DealDetailPage").then((m) => ({ default: m.DealDetailPage })));
 const FollowupsPage = lazy(() => import("./features/followups/FollowupsPage").then((m) => ({ default: m.FollowupsPage })));
 const CalendarPage = lazy(() => import("./features/calendar/CalendarPage").then((m) => ({ default: m.CalendarPage })));
 const CopilotPage = lazy(() => import("./features/copilot/CopilotPage").then((m) => ({ default: m.CopilotPage })));
@@ -48,8 +51,11 @@ function App() {
                   <Route path="leads" element={<LeadsPage />} />
                   <Route path="leads/:id" element={<LeadDetailPage />} />
                   <Route path="customers" element={<CustomersPage />} />
+                  <Route path="customers/:id" element={<CustomerDetailPage />} />
                   <Route path="properties" element={<PropertiesPage />} />
+                  <Route path="properties/:id" element={<PropertyDetailPage />} />
                   <Route path="deals" element={<DealsPage />} />
+                  <Route path="deals/:id" element={<DealDetailPage />} />
                   <Route path="followups" element={<FollowupsPage />} />
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="copilot" element={<CopilotPage />} />

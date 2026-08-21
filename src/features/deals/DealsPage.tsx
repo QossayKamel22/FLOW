@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../hooks/useCollection";
 import { dealsService } from "../../services/crmServices";
 import type { Deal, DealStage } from "../../types/crm";
@@ -25,6 +26,7 @@ const emptyForm = { name: "", company: "", value: 0, stage: "Lead" as DealStage,
 export function DealsPage() {
   const { items, loading, error, uid } = useCollection(dealsService);
   const { show } = useToast();
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -160,12 +162,20 @@ export function DealsPage() {
                           {deal.expectedClose ? `Closes ${deal.expectedClose}` : "No close date"} {deal.owner && `· ${deal.owner}`}
                         </div>
                       </div>
-                      <button
-                        onClick={() => setDeleteTarget(deal)}
-                        style={{ background: "none", border: "none", color: "var(--danger)", fontSize: 11.5, cursor: "pointer", marginTop: 8, padding: 0 }}
-                      >
-                        Delete
-                      </button>
+                      <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                        <button
+                          onClick={() => navigate(`/app/deals/${deal.id}`)}
+                          style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 11.5, cursor: "pointer", padding: 0 }}
+                        >
+                          Details
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget(deal)}
+                          style={{ background: "none", border: "none", color: "var(--danger)", fontSize: 11.5, cursor: "pointer", padding: 0 }}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </Card>
                   ))}
                   <button

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../hooks/useCollection";
 import { customersService } from "../../services/crmServices";
 import type { Customer } from "../../types/crm";
@@ -38,12 +39,12 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
 export function CustomersPage() {
   const { items, loading, error, uid } = useCollection(customersService);
   const { show } = useToast();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
-  const [selected, setSelected] = useState<Customer | null>(null);
 
   const filtered = useMemo(
     () => items.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.company.toLowerCase().includes(search.toLowerCase())),
@@ -129,7 +130,7 @@ export function CustomersPage() {
                 e.currentTarget.style.boxShadow = "var(--shadow-card)";
               }}
             >
-              <div onClick={() => setSelected(c)}>
+              <div onClick={() => navigate(`/app/customers/${c.id}`)}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <Avatar name={c.name} size={42} />
@@ -170,37 +171,6 @@ export function CustomersPage() {
           <Textarea label="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           <Button fullWidth onClick={handleSave}>{editing ? "Save changes" : "Create customer"}</Button>
         </div>
-      </Modal>
-
-      <Modal open={!!selected} onClose={() => setSelected(null)} title="">
-        {selected && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-              <Avatar name={selected.name} size={56} />
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 18 }}>{selected.name}</div>
-                <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>{selected.company || "No company"}</div>
-              </div>
-              <div style={{ marginLeft: "auto" }}>
-                <StatusBadge status={selected.status} />
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Email</span>
-                <span>{selected.email || "—"}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Phone</span>
-                <span>{selected.phone || "—"}</span>
-              </div>
-              <div style={{ padding: "10px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-                <div style={{ color: "var(--text-tertiary)", marginBottom: 6 }}>Notes</div>
-                <div>{selected.notes || "—"}</div>
-              </div>
-            </div>
-          </div>
-        )}
       </Modal>
 
       <ConfirmDialog open={!!deleteTarget} onCancel={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Delete customer" message={`Delete "${deleteTarget?.name}"?`} />

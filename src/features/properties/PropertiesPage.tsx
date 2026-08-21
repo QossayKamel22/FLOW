@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../hooks/useCollection";
 import { propertiesService } from "../../services/crmServices";
 import type { Property, PropertyStatus, PropertyType } from "../../types/crm";
@@ -69,13 +70,13 @@ function ContractPill({ date }: { date: string | null }) {
 export function PropertiesPage() {
   const { items, loading, error, uid } = useCollection(propertiesService);
   const { show } = useToast();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"All" | PropertyType>("All");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Property | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
-  const [selected, setSelected] = useState<Property | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -207,7 +208,7 @@ export function PropertiesPage() {
                   e.currentTarget.style.boxShadow = "var(--shadow-card)";
                 }}
               >
-                <div onClick={() => setSelected(p)}>
+                <div onClick={() => navigate(`/app/properties/${p.id}`)}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div
@@ -285,59 +286,6 @@ export function PropertiesPage() {
           <Textarea label="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           <Button fullWidth onClick={handleSave}>{editing ? "Save changes" : "Create property"}</Button>
         </div>
-      </Modal>
-
-      <Modal open={!!selected} onClose={() => setSelected(null)} title="">
-        {selected && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 12,
-                  background: selected.type === "Rent" ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "linear-gradient(135deg, #f59e0b, #d97706)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 22,
-                }}
-              >
-                {selected.type === "Rent" ? "🔑" : "🏷️"}
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 18 }}>{selected.title}</div>
-                <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>{selected.address}</div>
-              </div>
-              <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
-                <Badge tone={selected.type === "Rent" ? "accent" : "warning"}>{selected.type}</Badge>
-                <StatusBadge status={selected.status} />
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Price</span>
-                <span>${selected.price.toLocaleString()}{selected.type === "Rent" ? " /mo" : ""}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Size</span>
-                <span>{selected.bedrooms ? `${selected.bedrooms} bd · ` : ""}{selected.area ? `${selected.area} m²` : "—"}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Tenant / Buyer</span>
-                <span>{selected.clientName || "—"}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-                <span style={{ color: "var(--text-tertiary)" }}>Contract</span>
-                <span>{selected.contractStart || "—"} → {selected.contractEnd || "—"}</span>
-              </div>
-              <div style={{ padding: "10px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-                <div style={{ color: "var(--text-tertiary)", marginBottom: 6 }}>Notes</div>
-                <div>{selected.notes || "—"}</div>
-              </div>
-            </div>
-          </div>
-        )}
       </Modal>
 
       <ConfirmDialog open={!!deleteTarget} onCancel={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Delete property" message={`Delete "${deleteTarget?.title}"?`} />
