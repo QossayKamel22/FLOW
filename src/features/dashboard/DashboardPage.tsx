@@ -6,15 +6,24 @@ import { KpiCard } from "../../components/common/KpiCard";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { BotOrb } from "../../components/common/BotOrb";
-import { Avatar } from "../../components/common/Avatar";
 import { Sparkline } from "../../components/common/Sparkline";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
-import { StatusBadge } from "../../components/common/Badge";
 import { expiringContracts, daysUntil } from "../../lib/contracts";
 import { Link } from "react-router-dom";
-import { IconClock, IconHome, IconTarget } from "../../components/common/Icons";
+import { IconClock, IconHome, IconTarget, IconBriefcase } from "../../components/common/Icons";
 
 const DAY_MS = 86_400_000;
+
+function relativeTime(ms: number) {
+  const diff = Date.now() - ms;
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return "Just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  return `${day}d ago`;
+}
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -60,6 +69,36 @@ export function DashboardPage() {
   const pipelineHealth = deals.items.length
     ? Math.round((deals.items.filter((d) => d.stage !== "Lost").length / deals.items.length) * 100)
     : 100;
+
+  const recentActivity = useMemo(() => {
+    type Activity = { id: string; icon: typeof IconClock; color: string; title: string; sub: string; href: string; createdAt: number };
+    const out: Activity[] = [];
+    for (const l of leads.items) {
+      if (!l.createdAt) continue;
+      out.push({ id: `l-${l.id}`, icon: IconTarget, color: "#6366f1", title: `New lead: ${l.name}`, sub: l.company || l.source, href: `/app/leads/${l.id}`, createdAt: l.createdAt });
+    }
+    for (const d of deals.items) {
+      if (!d.createdAt) continue;
+      out.push({
+        id: `d-${d.id}`,
+        icon: IconBriefcase,
+        color: d.stage === "Won" ? "#22c55e" : "#a855f7",
+        title: d.stage === "Won" ? `Deal won: ${d.name}` : `New deal: ${d.name}`,
+        sub: `$${d.value.toLocaleString()} · ${d.stage}`,
+        href: `/app/deals/${d.id}`,
+        createdAt: d.createdAt,
+      });
+    }
+    for (const p of properties.items) {
+      if (!p.createdAt) continue;
+      out.push({ id: `p-${p.id}`, icon: IconHome, color: "#d4af6a", title: `New property: ${p.title || p.address}`, sub: p.type, href: `/app/properties/${p.id}`, createdAt: p.createdAt });
+    }
+    for (const f of followups.items) {
+      if (!f.createdAt) continue;
+      out.push({ id: `f-${f.id}`, icon: IconClock, color: "#22d3ee", title: `Follow-up scheduled: ${f.title}`, sub: f.date, href: "/app/followups", createdAt: f.createdAt });
+    }
+    return out.sort((a, b) => b.createdAt - a.createdAt).slice(0, 6);
+  }, [leads.items, deals.items, properties.items, followups.items]);
 
   const priorityActions = useMemo(() => {
     type Action = { id: string; icon: typeof IconClock; color: string; title: string; sub: string; href: string };
@@ -406,22 +445,61 @@ export function DashboardPage() {
             </Card>
 
             <Card>
-              <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Recent leads</h3>
-              {leads.items.length === 0 ? (
-                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>No leads yet.</p>
+              <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🕓</span> Recent activity
+              </h3>
+              {recentActivity.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Nothing yet — activity across leads, deals, properties, and follow-ups will show up here.</p>
               ) : (
-                <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {leads.items.slice(0, 5).map((l) => (
-                    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                        <Avatar name={l.name} size={30} />
-                        <span style={{ fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {l.name} <span style={{ color: "var(--text-tertiary)" }}>· {l.company}</span>
-                        </span>
-                      </div>
-                      <StatusBadge status={l.status} />
-                    </div>
-                  ))}
+                <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {recentActivity.map((a, i) => {
+                    const Icon = a.icon;
+                    return (
+                      <Link
+                        key={a.id}
+                        to={a.href}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "7px 6px",
+                          borderRadius: "var(--radius-md)",
+                          textDecoration: "none",
+                          color: "inherit",
+                          position: "relative",
+                          transition: "background var(--transition-fast)",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-elevated)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", alignSelf: "stretch", flexShrink: 0 }}>
+                          <span
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: a.color,
+                              background: `${a.color}1f`,
+                              boxShadow: `inset 0 0 0 1px ${a.color}40`,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Icon size={12} />
+                          </span>
+                          {i < recentActivity.length - 1 && <span style={{ flex: 1, width: 1, background: "var(--border)", marginTop: 2 }} />}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1, paddingBottom: i < recentActivity.length - 1 ? 8 : 0 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
+                          <div style={{ fontSize: 11, color: "var(--text-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {a.sub} · {relativeTime(a.createdAt)}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </Card>
