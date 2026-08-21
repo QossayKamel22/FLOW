@@ -5,7 +5,7 @@ import { scoreTier } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { KpiCard } from "../../components/common/KpiCard";
 import { BotOrb } from "../../components/common/BotOrb";
-import { Sparkline } from "../../components/common/Sparkline";
+import { BarChart } from "../../components/common/BarChart";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
 
 const donutColors = ["#6366f1", "#22d3ee", "#a855f7", "#f59e0b", "#22c55e", "#ec4899"];
@@ -32,26 +32,26 @@ export function AnalyticsPage() {
     acc[l.source] = (acc[l.source] ?? 0) + 1;
     return acc;
   }, {});
-  const stageCounts = ["Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map((stage) => ({
-    stage,
-    count: deals.items.filter((d) => d.stage === stage).length,
-  }));
+  const stageCounts = ["Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map((stage) => {
+    const stageDeals = deals.items.filter((d) => d.stage === stage);
+    return { stage, count: stageDeals.length, value: stageDeals.reduce((s, d) => s + (d.value || 0), 0) };
+  });
 
   const completedFollowups = followups.items.filter((f) => f.completed).length;
   const followupCompletion = followups.items.length ? Math.round((completedFollowups / followups.items.length) * 100) : 0;
 
   const revenueTrend = useMemo(() => {
     const now = Date.now();
-    const buckets = Array.from({ length: 6 }, () => 0);
+    const buckets = Array.from({ length: 6 }, (_, i) => ({ label: i === 5 ? "This week" : `${5 - i}w ago`, value: 0 }));
     for (const d of won) {
       if (!d.createdAt) continue;
       const weeksAgo = Math.floor((now - d.createdAt) / WEEK_MS);
       const idx = 5 - weeksAgo;
-      if (idx >= 0 && idx < 6) buckets[idx] += d.value || 0;
+      if (idx >= 0 && idx < 6) buckets[idx].value += d.value || 0;
     }
     return buckets;
   }, [won]);
-  const revenueTrendTotal = revenueTrend.reduce((s, v) => s + v, 0);
+  const revenueTrendTotal = revenueTrend.reduce((s, v) => s + v.value, 0);
 
   const scoreTiers = useMemo(() => {
     const tiers: Record<"Hot" | "Warm" | "Cold", number> = { Hot: 0, Warm: 0, Cold: 0 };
@@ -178,7 +178,10 @@ export function AnalyticsPage() {
                   <div key={s.stage}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
                       <span style={{ color: "var(--text-secondary)" }}>{s.stage}</span>
-                      <span style={{ fontWeight: 600 }}>{s.count}</span>
+                      <span style={{ fontWeight: 600 }}>
+                        {s.count}
+                        {s.value > 0 && <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}> · ${s.value.toLocaleString()}</span>}
+                      </span>
                     </div>
                     <div style={{ height: 8, background: "var(--bg-elevated)", borderRadius: 6, overflow: "hidden" }}>
                       <div
@@ -279,12 +282,8 @@ export function AnalyticsPage() {
                   <div style={{ fontSize: 24, fontWeight: 800, marginTop: 6 }}>${revenueTrendTotal.toLocaleString()}</div>
                 </div>
               </div>
-              <div style={{ marginTop: 10 }}>
-                <Sparkline values={revenueTrend} color="#34d399" />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 4 }}>
-                <span>6 weeks ago</span>
-                <span>This week</span>
+              <div style={{ marginTop: 14 }}>
+                <BarChart data={revenueTrend} color="#34d399" formatValue={(v) => `$${v.toLocaleString()}`} />
               </div>
             </Card>
 
