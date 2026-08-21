@@ -6,7 +6,7 @@ import { useToast } from "../context/ToastContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { PhotoLightbox } from "../components/common/PhotoLightbox";
-import { TopProgressBar } from "../components/common/TopProgressBar";
+import { RouteLoader } from "../components/common/RouteLoader";
 import { CommandPalette } from "../components/common/CommandPalette";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useLiveNotifications } from "../hooks/useLiveNotifications";
@@ -111,7 +111,7 @@ export function AppShell() {
 
   useEffect(() => {
     setRouteLoading(true);
-    const t = window.setTimeout(() => setRouteLoading(false), 250);
+    const t = window.setTimeout(() => setRouteLoading(false), 450);
     return () => window.clearTimeout(t);
   }, [location.pathname]);
 
@@ -132,7 +132,7 @@ export function AppShell() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
-      <TopProgressBar active={routeLoading} />
+      {routeLoading && <RouteLoader />}
       <CommandPalette />
       {/* Desktop sidebar */}
       <aside
