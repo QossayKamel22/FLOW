@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
-import { RouteLoader } from "../components/common/RouteLoader";
+import { TopProgressBar } from "../components/common/TopProgressBar";
 import { CommandPalette } from "../components/common/CommandPalette";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useLiveNotifications } from "../hooks/useLiveNotifications";
@@ -104,13 +104,13 @@ export function AppShell() {
 
   useEffect(() => {
     setRouteLoading(true);
-    const t = window.setTimeout(() => setRouteLoading(false), 320);
+    const t = window.setTimeout(() => setRouteLoading(false), 250);
     return () => window.clearTimeout(t);
   }, [location.pathname]);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
-      {routeLoading && <RouteLoader />}
+      <TopProgressBar active={routeLoading} />
       <CommandPalette />
       {/* Desktop sidebar */}
       <aside
