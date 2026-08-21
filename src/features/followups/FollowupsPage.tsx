@@ -18,6 +18,35 @@ function isOverdue(f: FollowUp) {
   return new Date(f.date) < new Date(new Date().toDateString());
 }
 
+const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function formatTime(time: string) {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return time;
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function formatFollowupDate(dateStr: string) {
+  if (!dateStr) return "No date";
+  const target = new Date(dateStr + "T00:00:00");
+  if (Number.isNaN(target.getTime())) return dateStr;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
+  if (diffDays === -1) return "Yesterday";
+  if (diffDays > 1 && diffDays <= 6) return weekdays[target.getDay()];
+  if (diffDays < -1 && diffDays >= -6) return `Last ${weekdays[target.getDay()]}`;
+
+  const sameYear = target.getFullYear() === today.getFullYear();
+  return target.toLocaleDateString("en-US", { month: "short", day: "numeric", year: sameYear ? undefined : "numeric" });
+}
+
 const groupMeta = {
   Overdue: { icon: "⚠️", tone: "danger" as const, accent: "#ef4444" },
   Upcoming: { icon: "🕐", tone: "accent" as const, accent: "#6366f1" },
@@ -150,8 +179,24 @@ export function FollowupsPage() {
                     <div style={{ fontWeight: 600, fontSize: 13.5, textDecoration: f.completed ? "line-through" : "none", color: f.completed ? "var(--text-tertiary)" : "var(--text-primary)" }}>
                       {f.title}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                      {f.date} {f.time && `· ${f.time}`} {f.relatedTo && `· ${f.relatedTo}`}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
+                      {f.date && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            color: title === "Overdue" ? "var(--danger)" : title === "Completed" ? "var(--text-tertiary)" : "var(--accent)",
+                            background: title === "Overdue" ? "rgba(239,68,68,0.12)" : title === "Completed" ? "var(--bg-elevated)" : "var(--accent-soft)",
+                          }}
+                        >
+                          {formatFollowupDate(f.date)}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                        {f.time && formatTime(f.time)} {f.relatedTo && `· ${f.relatedTo}`}
+                      </span>
                     </div>
                   </div>
                 </div>
