@@ -52,6 +52,7 @@ export function CustomerDetailPage() {
       : wonValue > 0
       ? `${customer.name} has generated $${wonValue.toLocaleString()} in won deals. A strong relationship worth nurturing for repeat business.`
       : `${customer.name} has ${linkedDeals.length} open deal${linkedDeals.length > 1 ? "s" : ""} in progress. Keep the momentum going.`;
+  const insightEmotion = wonValue > 0 ? "happy" : linkedDeals.length === 0 ? "neutral" : "neutral";
 
   function startEdit() {
     setForm(customer);
@@ -122,7 +123,7 @@ export function CustomerDetailPage() {
       >
         <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <BotOrb size={30} />
+            <BotOrb size={30} emotion={insightEmotion} />
             <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>AI Insight</h3>
           </div>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>{insight}</p>

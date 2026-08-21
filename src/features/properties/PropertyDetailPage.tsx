@@ -51,6 +51,7 @@ export function PropertyDetailPage() {
     : soon
     ? `Contract expires in ${contractDays} day${contractDays !== 1 ? "s" : ""}. Reach out to ${property.clientName || "the client"} ahead of the deadline.`
     : `Contract runs through ${property.contractEnd}. No action needed right now.`;
+  const insightEmotion = overdue ? "sad" : soon ? "neutral" : property.contractEnd ? "happy" : "neutral";
 
   function startEdit() {
     setForm(property);
@@ -136,7 +137,7 @@ export function PropertyDetailPage() {
       >
         <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <BotOrb size={30} />
+            <BotOrb size={30} emotion={insightEmotion} />
             <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>AI Insight</h3>
           </div>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>{insight}</p>

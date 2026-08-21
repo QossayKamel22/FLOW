@@ -63,6 +63,8 @@ export function DealDetailPage() {
       : closeDays !== null && closeDays <= 7
       ? `Closing in ${closeDays} day${closeDays !== 1 ? "s" : ""} — this is a priority deal this week.`
       : `Currently in "${deal.stage}" worth $${deal.value.toLocaleString()}. Keep it moving with a clear next step.`;
+  const insightEmotion =
+    deal.stage === "Won" ? "happy" : deal.stage === "Lost" || (closeDays !== null && closeDays < 0) ? "sad" : "neutral";
 
   function startEdit() {
     setForm(deal);
@@ -145,7 +147,7 @@ export function DealDetailPage() {
       >
         <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <BotOrb size={30} />
+            <BotOrb size={30} emotion={insightEmotion} />
             <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>AI Insight</h3>
           </div>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>{insight}</p>

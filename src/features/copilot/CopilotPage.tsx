@@ -14,10 +14,13 @@ const suggestedPrompts = [
   { icon: "🏠", text: "Which contracts are expiring soon?" },
 ];
 
+type Emotion = "neutral" | "happy" | "sad";
+
 interface Message {
   role: "user" | "assistant";
   text: string;
   time: number;
+  emotion?: Emotion;
 }
 
 function welcomeMessage(): Message {
@@ -25,6 +28,7 @@ function welcomeMessage(): Message {
     role: "assistant",
     text: "Hi! I'm FLOW AI. Ask me about your leads, deals, properties, or what to prioritize today.",
     time: Date.now(),
+    emotion: "happy",
   };
 }
 
@@ -160,40 +164,44 @@ export function CopilotPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  function contractsReply(): string {
+  function contractsReply(): { text: string; emotion: Emotion } {
     if (contractsDue.length === 0) {
-      return "No lease or sale contracts are expiring soon — you're all clear for the next 30 days.";
+      return { text: "No lease or sale contracts are expiring soon — you're all clear for the next 30 days.", emotion: "happy" };
     }
     const lines = contractsDue.slice(0, 5).map((p) => {
       const days = daysUntil(p.contractEnd);
       const status = days !== null && days < 0 ? `expired ${Math.abs(days)}d ago` : days === 0 ? "expires today" : `expires in ${days}d`;
       return `• ${p.title || p.address} (${p.type}) — ${status}${p.clientName ? `, ${p.clientName}` : ""}`;
     });
-    return `You have ${contractsDue.length} contract${contractsDue.length > 1 ? "s" : ""} needing attention:\n${lines.join("\n")}`;
+    return { text: `You have ${contractsDue.length} contract${contractsDue.length > 1 ? "s" : ""} needing attention:\n${lines.join("\n")}`, emotion: "sad" };
   }
 
-  function leadsReply(): string {
+  function leadsReply(): { text: string; emotion: Emotion } {
     const top = staleLeads.slice(0, 5);
-    if (top.length === 0) return "No open leads right now — your pipeline is clear. Nice work staying on top of it.";
+    if (top.length === 0) return { text: "No open leads right now — your pipeline is clear. Nice work staying on top of it.", emotion: "happy" };
     const lines = top.map((l) => `• ${l.name}${l.company ? ` (${l.company})` : ""} — score ${l.score}, ${l.status}`);
-    return `Here's who to prioritize, ranked by score:\n${lines.join("\n")}`;
+    return { text: `Here's who to prioritize, ranked by score:\n${lines.join("\n")}`, emotion: "neutral" };
   }
 
-  function dealsReply(): string {
-    if (overdueDeals.length === 0) return "No deals have slipped past their expected close date — your pipeline is on track.";
+  function dealsReply(): { text: string; emotion: Emotion } {
+    if (overdueDeals.length === 0) return { text: "No deals have slipped past their expected close date — your pipeline is on track.", emotion: "happy" };
     const lines = overdueDeals.slice(0, 5).map((d) => `• ${d.name}${d.company ? ` (${d.company})` : ""} — $${d.value.toLocaleString()}, was due ${d.expectedClose}`);
-    return `${overdueDeals.length} deal${overdueDeals.length > 1 ? "s have" : " has"} passed its expected close date:\n${lines.join("\n")}\nA quick check-in could help re-accelerate ${overdueDeals.length > 1 ? "them" : "it"}.`;
+    return {
+      text: `${overdueDeals.length} deal${overdueDeals.length > 1 ? "s have" : " has"} passed its expected close date:\n${lines.join("\n")}\nA quick check-in could help re-accelerate ${overdueDeals.length > 1 ? "them" : "it"}.`,
+      emotion: "sad",
+    };
   }
 
-  function dailyDigest(): string {
+  function dailyDigest(): { text: string; emotion: Emotion } {
     const parts: string[] = [];
     parts.push(`Here's your day at a glance:`);
     if (overdueFollowups.length > 0) parts.push(`⏰ ${overdueFollowups.length} overdue follow-up${overdueFollowups.length > 1 ? "s" : ""} — "${overdueFollowups[0].title}" is the oldest.`);
     if (staleLeads[0]) parts.push(`🎯 Your top lead is ${staleLeads[0].name} (score ${staleLeads[0].score}) — reach out first.`);
     if (overdueDeals.length > 0) parts.push(`💼 ${overdueDeals.length} deal${overdueDeals.length > 1 ? "s" : ""} past close date, worth $${overdueDeals.reduce((s, d) => s + d.value, 0).toLocaleString()} combined.`);
     if (contractsDue.length > 0) parts.push(`🏠 ${contractsDue.length} property contract${contractsDue.length > 1 ? "s" : ""} need attention this month.`);
-    if (parts.length === 1) parts.push("Everything's calm — no overdue items, no urgent leads. Good day to prospect for new business.");
-    return parts.join("\n");
+    const allClear = parts.length === 1;
+    if (allClear) parts.push("Everything's calm — no overdue items, no urgent leads. Good day to prospect for new business.");
+    return { text: parts.join("\n"), emotion: allClear ? "happy" : overdueFollowups.length > 0 || overdueDeals.length > 0 ? "sad" : "neutral" };
   }
 
   function send(text: string) {
@@ -202,14 +210,14 @@ export function CopilotPage() {
     setInput("");
     setTyping(true);
     pendingReply.current = window.setTimeout(() => {
-      let reply: string;
+      let reply: { text: string; emotion: Emotion };
       if (text === "Which contracts are expiring soon?") reply = contractsReply();
       else if (text === "Which leads should I contact today?") reply = leadsReply();
       else if (text === "Which deals need attention?") reply = dealsReply();
       else if (text === "Give me my daily digest") reply = dailyDigest();
-      else reply = "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.";
+      else reply = { text: "This is a preview of FLOW AI. In this version, responses are sample content — a real AI-powered assistant is on our roadmap.", emotion: "neutral" };
       setMessages((prev) => {
-        const next = [...prev, { role: "assistant" as const, text: reply, time: Date.now() }];
+        const next = [...prev, { role: "assistant" as const, text: reply.text, time: Date.now(), emotion: reply.emotion }];
         setStreamingIndex(next.length - 1);
         return next;
       });
@@ -225,6 +233,13 @@ export function CopilotPage() {
     }
     setTyping(false);
   }
+
+  const headerEmotion: Emotion = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant" && messages[i].emotion) return messages[i].emotion!;
+    }
+    return "neutral";
+  }, [messages]);
 
   function newChat() {
     setMessages([welcomeMessage()]);
@@ -291,9 +306,7 @@ export function CopilotPage() {
             }}
           >
             <div style={{ position: "relative" }}>
-              <BotOrb size={44} active={typing} />
-              <span style={{ position: "absolute", top: -4, right: -6, fontSize: 9, animation: "sparkleFloat 2.2s ease-in-out infinite" }}>✦</span>
-              <span style={{ position: "absolute", bottom: -2, left: -8, fontSize: 7, animation: "sparkleFloat 2.6s ease-in-out infinite 0.6s" }}>✦</span>
+              <BotOrb size={44} active={typing} emotion={typing ? "neutral" : headerEmotion} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14.5 }}>FLOW AI</div>
@@ -346,7 +359,7 @@ export function CopilotPage() {
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
               >
-                {m.role === "assistant" && <BotOrb size={30} />}
+                {m.role === "assistant" && <BotOrb size={30} emotion={m.emotion ?? "neutral"} />}
                 <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
                   <div
                     style={{

@@ -70,6 +70,9 @@ export function DashboardPage() {
     ? Math.round((deals.items.filter((d) => d.stage !== "Lost").length / deals.items.length) * 100)
     : 100;
 
+  const overdueFollowupCount = followups.items.filter((f) => f.date && !f.completed && new Date(f.date) < new Date(new Date().toDateString())).length;
+  const briefingEmotion = contractsDue.length > 0 || overdueFollowupCount > 0 ? "sad" : wonThisMonth > 0 && pipelineHealth >= 80 ? "happy" : "neutral";
+
   const recentActivity = useMemo(() => {
     type Activity = { id: string; icon: typeof IconClock; color: string; title: string; sub: string; href: string; createdAt: number };
     const out: Activity[] = [];
@@ -295,7 +298,7 @@ export function DashboardPage() {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <BotOrb size={36} />
+                    <BotOrb size={36} emotion={briefingEmotion} />
                     <h3 style={{ fontWeight: 800, fontSize: 16 }}>AI Briefing</h3>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -330,7 +333,11 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 14 }}>
-                  Your sales pipeline needs attention.
+                  {briefingEmotion === "sad"
+                    ? "A few things need your attention today — nothing urgent is slipping through unnoticed."
+                    : briefingEmotion === "happy"
+                    ? "Strong momentum — your pipeline is healthy and deals are closing."
+                    : "Your sales pipeline is steady. Here's what's worth a look."}
                 </p>
                 <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-secondary)", fontSize: 13.5, display: "flex", flexDirection: "column", gap: 6 }}>
                   <li>{openFollowups.length} follow-ups are ready for attention.</li>

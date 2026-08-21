@@ -225,6 +225,11 @@ p {
   75% { transform: translateY(-2%) scale(0.99, 1.01) rotate(2deg); }
 }
 
+@keyframes botBounceSad {
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  50% { transform: translateY(2%) scale(1.01, 0.98) rotate(-1deg); }
+}
+
 @keyframes botBounceActive {
   0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
   20% { transform: translateY(-14%) scale(0.92, 1.1) rotate(-4deg); }

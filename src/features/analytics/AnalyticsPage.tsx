@@ -27,6 +27,7 @@ export function AnalyticsPage() {
   const pipelineValue = deals.items.filter((d) => d.stage !== "Won" && d.stage !== "Lost").reduce((s, d) => s + d.value, 0);
 
   const leadConversion = leads.items.length ? Math.round((leads.items.filter((l) => l.status === "Won").length / leads.items.length) * 100) : 0;
+  const insightEmotion = closedCount === 0 ? "neutral" : winRate >= 60 ? "happy" : winRate <= 30 ? "sad" : "neutral";
 
   const sourceCounts = leads.items.reduce<Record<string, number>>((acc, l) => {
     acc[l.source] = (acc[l.source] ?? 0) + 1;
@@ -101,7 +102,13 @@ export function AnalyticsPage() {
   const avgDealSize = deals.items.length ? Math.round((revenue + pipelineValue) / deals.items.length) : 0;
 
   const insight = topSource
-    ? `Your win rate is ${winRate}% with $${revenue.toLocaleString()} closed so far. Most leads come from ${topSource} — worth doubling down there. ${
+    ? `${
+        insightEmotion === "happy"
+          ? `Great work — your win rate is ${winRate}%`
+          : insightEmotion === "sad"
+          ? `Your win rate is ${winRate}%, which has room to improve`
+          : `Your win rate is ${winRate}%`
+      } with $${revenue.toLocaleString()} closed so far. Most leads come from ${topSource} — worth doubling down there. ${
         followupCompletion >= 70
           ? `Follow-up discipline is strong at ${followupCompletion}%.`
           : `Follow-up completion is at ${followupCompletion}% — tightening that up could lift your win rate further.`
@@ -144,7 +151,7 @@ export function AnalyticsPage() {
           >
             <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                <BotOrb size={32} active={thinking} />
+                <BotOrb size={32} active={thinking} emotion={thinking ? "neutral" : insightEmotion} />
                 <h3 style={{ fontWeight: 800, fontSize: 15 }}>AI Insights</h3>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", background: "var(--bg-elevated)", padding: "2px 8px", borderRadius: 999, marginLeft: "auto" }}>
                   Preview

@@ -54,12 +54,14 @@ export function LeadDetailPage() {
   }
 
   const age = daysAgo(lead.createdAt);
-  const insight =
-    lead.status === "New" && age !== null && age >= 3
-      ? `This lead has been sitting in "New" for ${age} days without contact. Leads this age convert 40% less often — worth a quick outreach today.`
-      : lead.score >= 80
-      ? `Hot lead (score ${lead.score}). Prioritize this one — high-scored leads are your best conversion odds right now.`
-      : `Steady progress. Keep ${lead.name} moving through the pipeline with a clear next action.`;
+  const isStale = lead.status === "New" && age !== null && age >= 3;
+  const isHot = lead.score >= 80;
+  const insight = isStale
+    ? `This lead has been sitting in "New" for ${age} days without contact. Leads this age convert 40% less often — worth a quick outreach today.`
+    : isHot
+    ? `Hot lead (score ${lead.score}). Prioritize this one — high-scored leads are your best conversion odds right now.`
+    : `Steady progress. Keep ${lead.name} moving through the pipeline with a clear next action.`;
+  const insightEmotion = isStale ? "sad" : isHot || lead.status === "Won" ? "happy" : "neutral";
 
   function startEdit() {
     setForm(lead);
@@ -153,7 +155,7 @@ export function LeadDetailPage() {
       >
         <Card style={{ borderRadius: "calc(var(--radius-lg) - 1px)", background: "linear-gradient(160deg, rgba(99,102,241,0.08), var(--bg-card) 40%)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <BotOrb size={30} />
+            <BotOrb size={30} emotion={insightEmotion} />
             <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>AI Insight</h3>
           </div>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>{insight}</p>
