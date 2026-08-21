@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../hooks/useCollection";
 import { dealsService } from "../../services/crmServices";
@@ -11,6 +11,26 @@ import { Select } from "../../components/common/Select";
 import { Modal, ConfirmDialog } from "../../components/common/Modal";
 import { SectionHeader, LoadingState, EmptyState, ErrorState } from "../../components/common/States";
 import { useToast } from "../../context/ToastContext";
+
+function MiniStat({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        background: "var(--bg-card)",
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: tone, flexShrink: 0 }} />
+      <span style={{ fontSize: 20, fontWeight: 800 }}>{value}</span>
+      <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{label}</span>
+    </div>
+  );
+}
 
 const stages: DealStage[] = ["Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"];
 const stageColor: Record<DealStage, string> = {
@@ -33,6 +53,18 @@ export function DealsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Deal | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<DealStage | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filteredItems = useMemo(
+    () => items.filter((d) => !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.company.toLowerCase().includes(search.toLowerCase())),
+    [items, search]
+  );
+
+  const activeDeals = items.filter((d) => d.stage !== "Won" && d.stage !== "Lost");
+  const pipelineValue = activeDeals.reduce((s, d) => s + (d.value || 0), 0);
+  const won = items.filter((d) => d.stage === "Won");
+  const lost = items.filter((d) => d.stage === "Lost");
+  const winRate = won.length + lost.length ? Math.round((won.length / (won.length + lost.length)) * 100) : 0;
 
   function openCreate(stage?: DealStage) {
     setEditing(null);
@@ -84,6 +116,20 @@ export function DealsPage() {
     <div>
       <SectionHeader title="Deals" subtitle="Your sales pipeline, stage by stage." action={<NewButton label="New Deal" onClick={() => openCreate()} />} />
 
+      {!loading && !error && items.length > 0 && (
+        <div className="stagger-in" style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+          <MiniStat label="Pipeline value" value={`$${pipelineValue.toLocaleString()}`} tone="var(--accent)" />
+          <MiniStat label="Active deals" value={activeDeals.length} tone="#38bdf8" />
+          <MiniStat label="Win rate" value={`${winRate}%`} tone="var(--success)" />
+        </div>
+      )}
+
+      {!loading && !error && items.length > 0 && (
+        <div style={{ marginBottom: 16, maxWidth: 320 }}>
+          <Input placeholder="Search deals by name or company…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+      )}
+
       {loading ? (
         <LoadingState />
       ) : error ? (
@@ -93,7 +139,7 @@ export function DealsPage() {
       ) : (
         <div className="stagger-in scrollbar-thin" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
           {stages.map((stage) => {
-            const stageDeals = items.filter((d) => d.stage === stage);
+            const stageDeals = filteredItems.filter((d) => d.stage === stage);
             const total = stageDeals.reduce((s, d) => s + (d.value || 0), 0);
             const isOver = dragOverStage === stage;
             return (
