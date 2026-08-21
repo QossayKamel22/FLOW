@@ -53,6 +53,26 @@ const groupMeta = {
   Completed: { icon: "✅", tone: "neutral" as const, accent: "#22c55e" },
 };
 
+function MiniStat({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        background: "var(--bg-card)",
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: tone, flexShrink: 0 }} />
+      <span style={{ fontSize: 20, fontWeight: 800 }}>{value}</span>
+      <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{label}</span>
+    </div>
+  );
+}
+
 function CheckToggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
     <button
@@ -91,13 +111,26 @@ export function FollowupsPage() {
   const [editing, setEditing] = useState<FollowUp | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<FollowUp | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filteredItems = useMemo(
+    () =>
+      items.filter(
+        (f) => !search || f.title.toLowerCase().includes(search.toLowerCase()) || f.relatedTo.toLowerCase().includes(search.toLowerCase())
+      ),
+    [items, search]
+  );
 
   const groups = useMemo(() => {
-    const overdue = items.filter(isOverdue);
-    const upcoming = items.filter((f) => !f.completed && !isOverdue(f));
-    const completed = items.filter((f) => f.completed);
+    const overdue = filteredItems.filter(isOverdue);
+    const upcoming = filteredItems.filter((f) => !f.completed && !isOverdue(f));
+    const completed = filteredItems.filter((f) => f.completed);
     return { Overdue: overdue, Upcoming: upcoming, Completed: completed };
-  }, [items]);
+  }, [filteredItems]);
+
+  const overdueCount = useMemo(() => items.filter(isOverdue).length, [items]);
+  const completedCount = useMemo(() => items.filter((f) => f.completed).length, [items]);
+  const completionRate = items.length ? Math.round((completedCount / items.length) * 100) : 0;
 
   function openCreate() {
     setEditing(null);
@@ -216,12 +249,28 @@ export function FollowupsPage() {
     <div>
       <SectionHeader title="Follow-ups" subtitle="Stay on top of every commitment." action={<NewButton label="New Follow-up" onClick={openCreate} />} />
 
+      {!loading && !error && items.length > 0 && (
+        <div className="stagger-in" style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+          <MiniStat label="Total follow-ups" value={items.length} tone="var(--accent)" />
+          <MiniStat label="Overdue" value={overdueCount} tone="var(--danger)" />
+          <MiniStat label="Completion rate" value={`${completionRate}%`} tone="var(--success)" />
+        </div>
+      )}
+
+      {!loading && !error && items.length > 0 && (
+        <div style={{ marginBottom: 16, maxWidth: 320 }}>
+          <Input placeholder="Search follow-ups by title or related to…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+      )}
+
       {loading ? (
         <LoadingState />
       ) : error ? (
         <ErrorState message={error} />
       ) : items.length === 0 ? (
         <EmptyState title="No follow-ups yet" description="Schedule your first follow-up." action={{ label: "+ New Follow-up", onClick: openCreate }} />
+      ) : filteredItems.length === 0 ? (
+        <EmptyState title="No matching follow-ups" description="Try a different search." />
       ) : (
         <>
           {renderGroup("Overdue", groups.Overdue)}
