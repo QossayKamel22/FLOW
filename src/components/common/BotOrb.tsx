@@ -16,6 +16,7 @@ export function BotOrb({ size = 40, active = false }: { size?: number; active?: 
         }}
       />
       <div
+        className="bot-orb-body"
         style={{
           position: "relative",
           width: size,
@@ -24,6 +25,8 @@ export function BotOrb({ size = 40, active = false }: { size?: number; active?: 
           background: "var(--gradient-brand-diag)",
           padding: size * 0.09,
           boxShadow: "0 4px 18px rgba(99,102,241,0.5)",
+          animation: active ? "botBounceActive 900ms ease-in-out infinite" : "botBounceIdle 3.2s ease-in-out infinite",
+          transformOrigin: "50% 100%",
         }}
       >
         <div
@@ -39,26 +42,37 @@ export function BotOrb({ size = 40, active = false }: { size?: number; active?: 
             overflow: "hidden",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: size * 0.06 }}>
+          <div
+            className="bot-orb-face"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: size * 0.06,
+              animation: active ? "eyeLookActive 2.4s ease-in-out infinite" : "eyeLookIdle 5s ease-in-out infinite",
+            }}
+          >
             <div style={{ display: "flex", gap: size * 0.16 }}>
               <span
+                className="bot-orb-eye"
                 style={{
                   width: eye,
                   height: eye,
                   borderRadius: "50%",
                   background: "#7dd3fc",
                   boxShadow: "0 0 6px 1px rgba(125,211,252,0.9)",
-                  animation: active ? "orbBlink 2.6s ease-in-out infinite" : "none",
+                  animation: active ? "orbBlinkExpressive 2.2s ease-in-out infinite" : "orbBlinkExpressive 4.5s ease-in-out infinite",
                 }}
               />
               <span
+                className="bot-orb-eye"
                 style={{
                   width: eye,
                   height: eye,
                   borderRadius: "50%",
                   background: "#7dd3fc",
                   boxShadow: "0 0 6px 1px rgba(125,211,252,0.9)",
-                  animation: active ? "orbBlink 2.6s ease-in-out infinite" : "none",
+                  animation: active ? "orbBlinkExpressive 2.2s ease-in-out infinite" : "orbBlinkExpressive 4.5s ease-in-out infinite",
                 }}
               />
             </div>
@@ -84,7 +98,8 @@ export function BotOrb({ size = 40, active = false }: { size?: number; active?: 
           borderRadius: "50%",
           background: "#38bdf8",
           boxShadow: "0 0 8px 2px rgba(56,189,248,0.8)",
-          animation: "botFloat 3.4s ease-in-out infinite",
+          animation: active ? "antennaWiggleActive 900ms ease-in-out infinite" : "antennaWiggleIdle 3.2s ease-in-out infinite",
+          transformOrigin: "50% 150%",
         }}
       />
     </div>

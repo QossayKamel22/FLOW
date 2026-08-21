@@ -210,6 +210,59 @@ p {
   }
 }
 
+@keyframes botBounceIdle {
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  25% { transform: translateY(-4%) scale(0.98, 1.03) rotate(-2deg); }
+  50% { transform: translateY(1%) scale(1.02, 0.98) rotate(0deg); }
+  75% { transform: translateY(-2%) scale(0.99, 1.01) rotate(2deg); }
+}
+
+@keyframes botBounceActive {
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  20% { transform: translateY(-14%) scale(0.92, 1.1) rotate(-4deg); }
+  45% { transform: translateY(3%) scale(1.08, 0.9) rotate(3deg); }
+  65% { transform: translateY(-8%) scale(0.95, 1.05) rotate(-2deg); }
+  85% { transform: translateY(1%) scale(1.02, 0.98) rotate(1deg); }
+}
+
+@keyframes eyeLookIdle {
+  0%, 100% { transform: translateX(0); }
+  40% { transform: translateX(0); }
+  48% { transform: translateX(-14%); }
+  56% { transform: translateX(-14%); }
+  64% { transform: translateX(10%); }
+  72% { transform: translateX(10%); }
+  80% { transform: translateX(0); }
+}
+
+@keyframes eyeLookActive {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-10%) translateY(-8%); }
+  50% { transform: translateX(8%) translateY(0); }
+  75% { transform: translateX(0) translateY(-4%); }
+}
+
+@keyframes orbBlinkExpressive {
+  0%, 88%, 100% { transform: scaleY(1); }
+  92% { transform: scaleY(0.12); }
+  96% { transform: scaleY(1); }
+}
+
+@keyframes antennaWiggleIdle {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-15%) rotate(-8deg) scale(1.05); }
+  50% { transform: translateY(3%) rotate(0deg) scale(0.95); }
+  75% { transform: translateY(-8%) rotate(8deg) scale(1.02); }
+}
+
+@keyframes antennaWiggleActive {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  20% { transform: translateY(-40%) rotate(-16deg) scale(1.15); }
+  45% { transform: translateY(8%) rotate(10deg) scale(0.88); }
+  65% { transform: translateY(-25%) rotate(-8deg) scale(1.1); }
+  85% { transform: translateY(2%) rotate(4deg) scale(0.97); }
+}
+
 .page-enter {
   animation: fadeIn 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
