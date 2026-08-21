@@ -74,7 +74,15 @@ export function DealsPage() {
 
   function openEdit(d: Deal) {
     setEditing(d);
-    setForm({ ...emptyForm, ...d, expectedClose: d.expectedClose ?? "" });
+    setForm({
+      name: d.name,
+      company: d.company,
+      value: d.value,
+      stage: d.stage,
+      expectedClose: d.expectedClose ?? "",
+      owner: d.owner,
+      notes: d.notes,
+    });
     setModalOpen(true);
   }
 

@@ -72,7 +72,15 @@ export function DealDetailPage() {
   async function saveEdit() {
     if (!uid || !form || !form.name.trim()) return;
     try {
-      await dealsService.update(uid, deal!.id, { ...form, expectedClose: form.expectedClose || null });
+      await dealsService.update(uid, deal!.id, {
+        name: form.name,
+        company: form.company,
+        value: form.value,
+        stage: form.stage,
+        expectedClose: form.expectedClose || null,
+        owner: form.owner,
+        notes: form.notes,
+      });
       show("Deal updated.", "success");
       setEditing(false);
     } catch {
