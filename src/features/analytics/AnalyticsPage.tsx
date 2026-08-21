@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCollection } from "../../hooks/useCollection";
 import { dealsService, leadsService, followupsService } from "../../services/crmServices";
+import { scoreTier } from "../../types/crm";
 import { Card } from "../../components/ui/Card";
 import { KpiCard } from "../../components/common/KpiCard";
 import { BotOrb } from "../../components/common/BotOrb";
+import { Sparkline } from "../../components/common/Sparkline";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common/States";
 
 const donutColors = ["#6366f1", "#22d3ee", "#a855f7", "#f59e0b", "#22c55e", "#ec4899"];
+const DAY_MS = 86_400_000;
+const WEEK_MS = 7 * DAY_MS;
 
 export function AnalyticsPage() {
   const leads = useCollection(leadsService);
@@ -35,6 +39,26 @@ export function AnalyticsPage() {
 
   const completedFollowups = followups.items.filter((f) => f.completed).length;
   const followupCompletion = followups.items.length ? Math.round((completedFollowups / followups.items.length) * 100) : 0;
+
+  const revenueTrend = useMemo(() => {
+    const now = Date.now();
+    const buckets = Array.from({ length: 6 }, () => 0);
+    for (const d of won) {
+      if (!d.createdAt) continue;
+      const weeksAgo = Math.floor((now - d.createdAt) / WEEK_MS);
+      const idx = 5 - weeksAgo;
+      if (idx >= 0 && idx < 6) buckets[idx] += d.value || 0;
+    }
+    return buckets;
+  }, [won]);
+  const revenueTrendTotal = revenueTrend.reduce((s, v) => s + v, 0);
+
+  const scoreTiers = useMemo(() => {
+    const tiers: Record<"Hot" | "Warm" | "Cold", number> = { Hot: 0, Warm: 0, Cold: 0 };
+    for (const l of leads.items) tiers[scoreTier(l.score)] += 1;
+    return tiers;
+  }, [leads.items]);
+  const maxTier = Math.max(1, scoreTiers.Hot, scoreTiers.Warm, scoreTiers.Cold);
 
   const maxStage = Math.max(1, ...stageCounts.map((s) => s.count));
 
@@ -232,6 +256,79 @@ export function AnalyticsPage() {
                   </div>
                 </div>
               )}
+            </Card>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginTop: 16 }}>
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                <div>
+                  <h3 style={{ fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>💵</span> Revenue won · last 6 weeks
+                  </h3>
+                  <div style={{ fontSize: 24, fontWeight: 800, marginTop: 6 }}>${revenueTrendTotal.toLocaleString()}</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <Sparkline values={revenueTrend} color="#34d399" />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--text-tertiary)", marginTop: 4 }}>
+                <span>6 weeks ago</span>
+                <span>This week</span>
+              </div>
+            </Card>
+
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🔥</span> Lead score mix
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {(
+                  [
+                    ["Hot", "var(--danger)"],
+                    ["Warm", "var(--warning)"],
+                    ["Cold", "var(--text-tertiary)"],
+                  ] as const
+                ).map(([tier, color]) => (
+                  <div key={tier}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
+                      <span style={{ color: "var(--text-secondary)" }}>{tier}</span>
+                      <span style={{ fontWeight: 600 }}>{scoreTiers[tier]}</span>
+                    </div>
+                    <div style={{ height: 8, background: "var(--bg-elevated)", borderRadius: 6, overflow: "hidden" }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${(scoreTiers[tier] / maxTier) * 100}%`,
+                          background: color,
+                          borderRadius: 6,
+                          transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
 
