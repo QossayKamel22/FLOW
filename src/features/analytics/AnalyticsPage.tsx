@@ -53,6 +53,28 @@ export function AnalyticsPage() {
   }, [won]);
   const revenueTrendTotal = revenueTrend.reduce((s, v) => s + v.value, 0);
 
+  const leadsTrend = useMemo(() => {
+    const now = Date.now();
+    const buckets = Array.from({ length: 6 }, (_, i) => ({ label: i === 5 ? "This week" : `${5 - i}w ago`, value: 0 }));
+    for (const l of leads.items) {
+      if (!l.createdAt) continue;
+      const weeksAgo = Math.floor((now - l.createdAt) / WEEK_MS);
+      const idx = 5 - weeksAgo;
+      if (idx >= 0 && idx < 6) buckets[idx].value += 1;
+    }
+    return buckets;
+  }, [leads.items]);
+  const leadsTrendTotal = leadsTrend.reduce((s, v) => s + v.value, 0);
+
+  const funnelStages: { stage: string; count: number }[] = useMemo(() => {
+    const order = ["Lead", "Qualified", "Proposal", "Negotiation", "Won"];
+    return order.map((stage, i) => ({
+      stage,
+      count: deals.items.filter((d) => order.indexOf(d.stage) >= i).length,
+    }));
+  }, [deals.items]);
+  const funnelMax = Math.max(1, funnelStages[0]?.count ?? 0);
+
   const scoreTiers = useMemo(() => {
     const tiers: Record<"Hot" | "Warm" | "Cold", number> = { Hot: 0, Warm: 0, Cold: 0 };
     for (const l of leads.items) tiers[scoreTier(l.score)] += 1;
@@ -331,6 +353,50 @@ export function AnalyticsPage() {
             </Card>
           </div>
 
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginTop: 16 }}>
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                <div>
+                  <h3 style={{ fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>🎯</span> New leads · last 6 weeks
+                  </h3>
+                  <div style={{ fontSize: 24, fontWeight: 800, marginTop: 6 }}>{leadsTrendTotal}</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <BarChart data={leadsTrend} color="#6366f1" />
+              </div>
+            </Card>
+
+            <Card
+              style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.4), 0 16px 32px -8px rgba(99,102,241,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "var(--shadow-card)";
+              }}
+            >
+              <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>✅</span> Follow-up completion
+              </h3>
+              <div style={{ fontSize: 26, fontWeight: 800, animation: "valuePop 400ms cubic-bezier(0.16, 1, 0.3, 1)" }}>{followupCompletion}%</div>
+              <p style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{completedFollowups} of {followups.items.length} follow-ups completed</p>
+            </Card>
+          </div>
+
           <Card
             style={{ marginTop: 16, transition: "transform var(--transition-base), box-shadow var(--transition-base)" }}
             onMouseEnter={(e) => {
@@ -342,11 +408,41 @@ export function AnalyticsPage() {
               e.currentTarget.style.boxShadow = "var(--shadow-card)";
             }}
           >
-            <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>✅</span> Follow-up completion
+            <h3 style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>🔻</span> Deal conversion funnel
             </h3>
-            <div style={{ fontSize: 26, fontWeight: 800, animation: "valuePop 400ms cubic-bezier(0.16, 1, 0.3, 1)" }}>{followupCompletion}%</div>
-            <p style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>{completedFollowups} of {followups.items.length} follow-ups completed</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {funnelStages.map((s, i) => {
+                const widthPct = (s.count / funnelMax) * 100;
+                const prevCount = i > 0 ? funnelStages[i - 1].count : s.count;
+                const dropPct = i > 0 && prevCount > 0 ? Math.round(((prevCount - s.count) / prevCount) * 100) : 0;
+                return (
+                  <div key={s.stage} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 90, fontSize: 12.5, color: "var(--text-secondary)", flexShrink: 0 }}>{s.stage}</div>
+                    <div style={{ flex: 1, height: 26, background: "var(--bg-elevated)", borderRadius: 6, overflow: "hidden", position: "relative" }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${Math.max(widthPct, s.count > 0 ? 4 : 0)}%`,
+                          background: `linear-gradient(90deg, #6366f1, ${donutColors[i % donutColors.length]})`,
+                          borderRadius: 6,
+                          transition: "width 700ms cubic-bezier(0.16, 1, 0.3, 1)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          paddingRight: 8,
+                        }}
+                      >
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff" }}>{s.count}</span>
+                      </div>
+                    </div>
+                    <div style={{ width: 60, fontSize: 11, color: dropPct > 0 ? "var(--danger)" : "var(--text-tertiary)", flexShrink: 0, textAlign: "right" }}>
+                      {i > 0 && dropPct > 0 ? `-${dropPct}%` : i === 0 ? "start" : "—"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </Card>
         </>
       )}
