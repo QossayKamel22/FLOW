@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { FlowLogo } from "../components/common/FlowLogo";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
+import { PhotoLightbox } from "../components/common/PhotoLightbox";
 import { TopProgressBar } from "../components/common/TopProgressBar";
 import { CommandPalette } from "../components/common/CommandPalette";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
@@ -100,6 +101,7 @@ export function AppShell() {
   const notificationCount = liveNotifications.length + storedNotifications.filter((n) => !n.read).length;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [routeLoading, setRouteLoading] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -197,7 +199,7 @@ export function AppShell() {
 
         <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px" }}>
-            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={32} />
+            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={32} onClick={() => setLightboxOpen(true)} />
             <div style={{ overflow: "hidden" }}>
               <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {user?.displayName || "Account"}
@@ -286,6 +288,14 @@ export function AppShell() {
           .mobile-header { display: flex !important; }
         }
       `}</style>
+
+      {lightboxOpen && (
+        <PhotoLightbox
+          photoURL={photoURL}
+          name={user?.displayName || user?.email || "U"}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

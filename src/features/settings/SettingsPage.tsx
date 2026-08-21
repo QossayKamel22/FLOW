@@ -6,6 +6,7 @@ import { auth } from "../../lib/firebase";
 import { getPreferences, savePreferences, type UserPreferences } from "../../services/userService";
 import { useProfilePhoto, fileToSquareDataUrl } from "../../hooks/useProfilePhoto";
 import { ProfileAvatar } from "../../components/common/ProfileAvatar";
+import { PhotoLightbox } from "../../components/common/PhotoLightbox";
 import { Switch } from "../../components/common/Switch";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -40,6 +41,7 @@ export function SettingsPage() {
   const [prefs, setPrefs] = useState<UserPreferences | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export function SettingsPage() {
         <Card style={{ transition: "transform var(--transition-base), box-shadow var(--transition-base)" }} onMouseEnter={(e) => hoverLift(e, true)} onMouseLeave={(e) => hoverLift(e, false)}>
           <CardHeading icon={IconUsers} color="#6366f1">Profile</CardHeading>
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={64} />
+            <ProfileAvatar photoURL={photoURL} name={user?.displayName || user?.email || "U"} size={64} onClick={() => setLightboxOpen(true)} />
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", gap: 8 }}>
                 <Button size="sm" variant="secondary" loading={uploading} onClick={() => fileInputRef.current?.click()}>
@@ -251,6 +253,14 @@ export function SettingsPage() {
           <Button variant="danger" onClick={() => void logOut()}>Log out</Button>
         </Card>
       </div>
+
+      {lightboxOpen && (
+        <PhotoLightbox
+          photoURL={photoURL}
+          name={user?.displayName || user?.email || "U"}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }
