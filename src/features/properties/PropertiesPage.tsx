@@ -80,11 +80,19 @@ export function PropertiesPage() {
 
   const filtered = useMemo(
     () =>
-      items.filter((p) => {
-        const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.address.toLowerCase().includes(search.toLowerCase());
-        const matchesType = typeFilter === "All" || p.type === typeFilter;
-        return matchesSearch && matchesType;
-      }),
+      items
+        .filter((p) => {
+          const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.address.toLowerCase().includes(search.toLowerCase());
+          const matchesType = typeFilter === "All" || p.type === typeFilter;
+          return matchesSearch && matchesType;
+        })
+        .sort((a, b) => {
+          const aFlagged = isExpiringSoon(a.contractEnd) || isOverdue(a.contractEnd);
+          const bFlagged = isExpiringSoon(b.contractEnd) || isOverdue(b.contractEnd);
+          if (aFlagged !== bFlagged) return aFlagged ? -1 : 1;
+          if (aFlagged && bFlagged) return (a.contractEnd ?? "").localeCompare(b.contractEnd ?? "");
+          return 0;
+        }),
     [items, search, typeFilter]
   );
 
@@ -190,13 +198,12 @@ export function PropertiesPage() {
         <div className="stagger-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
           {filtered.map((p) => {
             const flagged = isExpiringSoon(p.contractEnd) || isOverdue(p.contractEnd);
-            return (
+            const cardEl = (
               <Card
-                key={p.id}
                 style={{
                   cursor: "pointer",
                   transition: "transform var(--transition-base), box-shadow var(--transition-base)",
-                  borderColor: flagged ? "rgba(245,158,11,0.4)" : undefined,
+                  borderRadius: flagged ? "calc(var(--radius-lg) - 1px)" : undefined,
                 }}
                 padding={20}
                 onMouseEnter={(e) => {
@@ -260,6 +267,23 @@ export function PropertiesPage() {
                   <Button size="sm" variant="danger" onClick={() => setDeleteTarget(p)}>Delete</Button>
                 </div>
               </Card>
+            );
+            return flagged ? (
+              <div
+                key={p.id}
+                className="animated-gradient-border"
+                style={{
+                  borderRadius: "var(--radius-lg)",
+                  padding: 1,
+                  backgroundImage: isOverdue(p.contractEnd)
+                    ? "linear-gradient(120deg, rgba(239,68,68,0.65), rgba(245,158,11,0.3), rgba(239,68,68,0.65))"
+                    : "linear-gradient(120deg, rgba(245,158,11,0.6), rgba(245,158,11,0.2), rgba(245,158,11,0.6))",
+                }}
+              >
+                {cardEl}
+              </div>
+            ) : (
+              <div key={p.id}>{cardEl}</div>
             );
           })}
         </div>
